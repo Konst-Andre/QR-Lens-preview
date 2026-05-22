@@ -1034,6 +1034,20 @@ function eqBrandOrder(brand){
   const i=EQ_BRAND_ORDER.indexOf(brand);
   return i<0?999:i;
 }
+// Batch 21 EQ-SORT-HELPER: єдина точка sort для items у вибраній аптеці.
+// Викликається in-place з selectOutlet → o.i стає sorted для ВСІХ рендерів
+// (renderQR carousel, renderEquipment outlet expand, goToQR findIndex).
+// Sort: KPK brand order → alpha pos → worst-first within pos.
+function sortItemsByBrand(items){
+  items.sort((a,b)=>{
+    const oa=eqBrandOrder(eqBrand(a.pos)), ob=eqBrandOrder(eqBrand(b.pos));
+    if(oa!==ob)return oa-ob;
+    const pc=a.pos.localeCompare(b.pos,'uk');
+    if(pc!==0)return pc;
+    const SO={crit:0,late:1,warn:2,ok:3};
+    return SO[a.st]-SO[b.st];
+  });
+}
 
 // Batch 9 EQ-CATEGORY-V2: розширена мапа категорій
 function eqCategory(pos){
@@ -1137,16 +1151,9 @@ function renderEquipment(){
       </div>`;
       return;
     }
-    // Batch 21 EQ-SORT-V2: KPK brand order → alpha pos → worst-first within pos
-    // (заміна Batch 10 group→alpha→worst; критичність впливає тільки коли pos однакова)
-    const items=o.i.slice().sort((a,b)=>{
-      const oa=eqBrandOrder(eqBrand(a.pos)), ob=eqBrandOrder(eqBrand(b.pos));
-      if(oa!==ob)return oa-ob;
-      const pc=a.pos.localeCompare(b.pos,'uk');
-      if(pc!==0)return pc;
-      const SO={crit:0,late:1,warn:2,ok:3};
-      return SO[a.st]-SO[b.st];
-    });
+    // Batch 21 EQ-SORT: o.i вже sorted з selectOutlet (sortItemsByBrand in-place).
+    // Раніше тут був окремий sort — видалено для уникнення дубль-логіки.
+    const items=o.i;
     document.getElementById('eq-list').innerHTML=`<div class="eq-cards">`+items.map(it=>{
       // Batch 10b: QR ID 13 chars (формат XXXXXXXX-XXXX — перші 2 групи GUID з дашем)
       const shortQR=it.qr.replace(/[{}]/g,'').slice(0,13);
@@ -1253,6 +1260,13 @@ document.getElementById('srBtn').addEventListener('click',()=>{
 function selSR(i){S.sr=i;S.outlet=null;S.carIdx=0;S.phSrch='';S.fNet='all';S.fCity='all';S.fSt=[];S.eqSrch='';S.eqFBrand='all';S.eqFSt=[];document.getElementById('ph-srch-inp').value='';document.getElementById('eq-srch-inp').value='';closeSheet('sh-sr');render();}
 function selectOutlet(i){
   S.outlet=i;
+  // Batch 21 OUTLET-SORT-ITEMS: in-place sort o.i при виборі аптеки.
+  // Один sort покриває всі рендери (renderQR carousel, renderEquipment outlet, goToQR).
+  // S.carIdx 0 — після sort перший item = найвищий пріоритет за КПК (Strepsils, якщо є).
+  if(i!==null){
+    const _d=sr(), _o=_d&&_d.o[i];
+    if(_o&&Array.isArray(_o.i)&&_o.i.length>1)sortItemsByBrand(_o.i);
+  }
   // Batch 17 OUTLET-CLOSE-RESET: при закритті аптеки (× на ph-banner → selectOutlet(null))
   // скидаємо фільтри обладнання, бо вони могли бути виставлені через ctaToEquip()
   // з Top/Focus chips в Tab 1. Інтуїтивна логіка: "закрив аптеку → повернувся до загального списку".
