@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QR Lens">
 <!-- Batch 24: theme-color (dynamic) — оновлюється inline script нижче і toggle JS. Default dark для PWA splash. -->
-<meta name="theme-color" content="#0d1117">
+<meta name="theme-color" content="#0a0e14">
 <!-- Batch 24: FOUC fix — встановити data-theme ДО CSS apply і first paint. iOS 18+ listener додано в body JS. -->
 <script>
   (function(){
@@ -19,7 +19,7 @@
       html.setAttribute('data-theme', dark ? 'dark' : 'light');
       html.setAttribute('data-theme-mode', mode);
       var meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.content = dark ? '#0d1117' : '#eef3f2';
+      if (meta) meta.content = dark ? '#0a0e14' : '#eef3f2';
     } catch(e) {
       // Fallback: localStorage заблоковано / private mode → залишити default
       document.documentElement.setAttribute('data-theme', 'dark');
@@ -54,11 +54,13 @@
   --accent-border:rgba(42,140,132,.22);--accent-glow:rgba(42,140,132,.12);
   --sh1:0 1px 2px rgba(20,40,35,.05),0 2px 8px rgba(20,40,35,.05);
   --sh2:0 2px 6px rgba(20,40,35,.07),0 8px 24px rgba(20,40,35,.07);
+  /* Batch 25.2 поліш#2: band-власний токен (НЕ чіпаємо --bg-soft — його реюзають sr-pill/icon-btn/ph-rank; регрес-урок #1). Світла=Well (A51 inset). */
+  --band:var(--bg-soft);--band-sh:inset 0 2px 4px rgba(0,0,0,.10);
   --r:14px;--rs:10px;--rxs:6px;--sab:env(safe-area-inset-bottom,0px);
 }
 [data-theme="dark"]{
-  --bg:#0d1117;--bg-soft:#161b22;--card:#1c2128;--card-2:#22272e;
-  --border:#2d333b;--border-2:#444c56;
+  --bg:#0a0e14;--bg-soft:#11161e;--card:#232a35;--card-2:#2b3340;
+  --border:#333b46;--border-2:#46505d;
   --ink:#e6edf3;--ink-2:#b7c0c8;--muted:#8b949e;--muted-2:#6e7681;
   --ok:#3bc572;--warn:#e5a24a;--late:#f97316;--crit:#e85d2c;
   --ok-soft:rgba(59,197,114,.15);--warn-soft:rgba(229,162,74,.15);
@@ -66,13 +68,14 @@
   --accent:#2A8C84;--accent-hover:#329A91;--accent-active:#237770;
   --accent-soft:#1A4540;--accent-soft-2:rgba(42,140,132,.10);
   --accent-border:rgba(42,140,132,.28);--accent-glow:rgba(42,140,132,.15);
-  --sh1:0 1px 2px rgba(0,0,0,.22),0 4px 12px rgba(0,0,0,.10);
+  --sh1:inset 0 1px 0 rgba(255,255,255,.055),inset 0 -1px 0 rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.28);
   --sh2:0 2px 6px rgba(0,0,0,.28),0 12px 28px rgba(0,0,0,.14);
+  --band:color-mix(in srgb,var(--card) 50%,var(--bg-soft));--band-sh:inset 0 1px 0 rgba(255,255,255,.05); /* Batch 25.2: темна=Lift-M (≈+10, біля #1a212c) + A45 top-хайлайт */
 }
 @media(prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#0d1117;--bg-soft:#161b22;--card:#1c2128;--card-2:#22272e;
-    --border:#2d333b;--border-2:#444c56;
+    --bg:#0a0e14;--bg-soft:#11161e;--card:#232a35;--card-2:#2b3340;
+    --border:#333b46;--border-2:#46505d;
     --ink:#e6edf3;--ink-2:#b7c0c8;--muted:#8b949e;--muted-2:#6e7681;
     --ok:#3bc572;--warn:#e5a24a;--late:#f97316;--crit:#e85d2c;
     --ok-soft:rgba(59,197,114,.15);--warn-soft:rgba(229,162,74,.15);
@@ -80,8 +83,9 @@
     --accent:#2A8C84;--accent-hover:#329A91;--accent-active:#237770;
     --accent-soft:#1A4540;--accent-soft-2:rgba(42,140,132,.10);
     --accent-border:rgba(42,140,132,.28);--accent-glow:rgba(42,140,132,.15);
-    --sh1:0 1px 2px rgba(0,0,0,.22),0 4px 12px rgba(0,0,0,.10);
+    --sh1:inset 0 1px 0 rgba(255,255,255,.055),inset 0 -1px 0 rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.28);
     --sh2:0 2px 6px rgba(0,0,0,.28),0 12px 28px rgba(0,0,0,.14);
+    --band:color-mix(in srgb,var(--card) 50%,var(--bg-soft));--band-sh:inset 0 1px 0 rgba(255,255,255,.05); /* Batch 25.2: auto-dark паритет із [data-theme=dark] */
   }
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -152,7 +156,7 @@ button{font-family:inherit;border:none;cursor:pointer;background:none;color:inhe
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
 /* BANNER */
 /* Batch 8h TAB2-AIR-TOP: padding-top збільшено з 6→8px для air між app-bar і ph-banner */
-#ph-banner{display:flex;align-items:center;gap:8px;padding:8px 12px 7px;background:var(--bg-soft);border-bottom:1px solid var(--border);border-left:3px solid var(--accent);flex-shrink:0}
+#ph-banner{display:flex;align-items:center;gap:8px;padding:8px 12px 7px;background:var(--band);box-shadow:var(--band-sh);border-bottom:1px solid var(--border);border-left:4px solid var(--accent);flex-shrink:0}/* Batch 25.2: band Lift/Well через --band; rail 3→4px (секція B) */
 .ph-b-ico{color:var(--accent);flex-shrink:0;display:flex;align-items:center}
 .ph-b-body{flex:1;min-width:0}
 .ph-b-addr{font-size:12px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -211,9 +215,13 @@ body.tab4-fused #ctx-layer{background:var(--bg-soft);border-top:1px dashed var(-
 .eq-card-meta-qr{font-family:monospace;letter-spacing:.5px;font-size:10px}
 .eq-dot-it{display:flex;align-items:center;gap:3px;font-size:11px;font-weight:700}
 /* Batch 9 EQ-WORST-TINT: background gradient за найгіршим статусом (light overlay 4-6%) */
-.eq-card[data-worst="crit"]{background:linear-gradient(180deg,var(--card) 0%,color-mix(in srgb,var(--crit) 6%,var(--card)) 100%)}
-.eq-card[data-worst="late"]{background:linear-gradient(180deg,var(--card) 0%,color-mix(in srgb,var(--late) 5%,var(--card)) 100%)}
-.eq-card[data-worst="warn"]{background:linear-gradient(180deg,var(--card) 0%,color-mix(in srgb,var(--warn) 5%,var(--card)) 100%)}
+.eq-card[data-worst="crit"]{background:linear-gradient(180deg,color-mix(in srgb,var(--crit) 3%,var(--card)) 0%,color-mix(in srgb,var(--crit) 8%,var(--card)) 100%)}
+.eq-card[data-worst="late"]{background:linear-gradient(180deg,color-mix(in srgb,var(--late) 2%,var(--card)) 0%,color-mix(in srgb,var(--late) 7%,var(--card)) 100%)}
+.eq-card[data-worst="warn"]{background:linear-gradient(180deg,color-mix(in srgb,var(--warn) 2%,var(--card)) 0%,color-mix(in srgb,var(--warn) 7%,var(--card)) 100%)}/* Batch 25.2 C2: світла warm top+bottom (по всій картці, дзеркало dark). Bare=світла за конвенцією; dark нижче не чіпано. */
+/* Batch 25.1 #2 WARM-TINT (dark-only): +Lift card(#232a35) холодніша/світліша гасила теплий overlay (Вебер+hue-cancel). % перетюнено + тинт по ВСІЙ картці (top%+bottom%), не лише знизу. crit10/late8/warn8, top3. Світла база locked. A8: дуальний селектор > бази (0,2,0). */
+[data-theme="dark"] .eq-card[data-worst="crit"],:root:not([data-theme="light"]) .eq-card[data-worst="crit"]{background:linear-gradient(180deg,color-mix(in srgb,var(--crit) 3%,var(--card)) 0%,color-mix(in srgb,var(--crit) 10%,var(--card)) 100%)}
+[data-theme="dark"] .eq-card[data-worst="late"],:root:not([data-theme="light"]) .eq-card[data-worst="late"]{background:linear-gradient(180deg,color-mix(in srgb,var(--late) 3%,var(--card)) 0%,color-mix(in srgb,var(--late) 8%,var(--card)) 100%)}
+[data-theme="dark"] .eq-card[data-worst="warn"],:root:not([data-theme="light"]) .eq-card[data-worst="warn"]{background:linear-gradient(180deg,color-mix(in srgb,var(--warn) 3%,var(--card)) 0%,color-mix(in srgb,var(--warn) 8%,var(--card)) 100%)}
 /* "ok" — plain var(--card), без override */
 /* Batch 9.1 EQ-DOTS-COMPACT: при 3-4 status dots — менші font/gap щоб все вмістилось в один рядок */
 .eq-card[data-dots="3"] .eq-card-bot,
@@ -288,12 +296,9 @@ body.tab4-fused #ctx-layer{background:var(--bg-soft);border-top:1px dashed var(-
 .ok-badge-dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
 /* PHARMACIES */
 /* Batch 8g TAB2-FILTER-NO-BG: прибрано background:card (була "плитка" з app-bar look). Filter-row тепер лежить на загальному bg без власної карти */
-.filter-row{display:flex;gap:8px;padding:10px 16px;background:transparent;flex-shrink:0;align-items:center}
-/* Batch 8i TAB2-FILTER-AIR: при відсутньому ph-banner (немає вибраної аптеки) додаємо повітря над filter-row — стик з app-bar буде trischki тісним без banner між ними */
-body:not(.has-banner) #sc-pharmacies .filter-row{margin-top:4px}
-/* Batch 9 EQ-FILTER-AIR: те саме для Tab 4 */
-body:not(.has-banner) #sc-equipment .filter-row{margin-top:4px}
-.ph-srch{flex:1;display:flex;align-items:center;gap:6px;background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px}
+.filter-row{display:flex;gap:8px;padding:14px 16px 4px;background:transparent;flex-shrink:0;align-items:center}/* Batch 25.2 Fix1: симетричні зовнішні зазори ~14/14 (низ 4 + список padding-top 10 = 14; згори 14). Повітря над рядом тепер у padding-top. */
+/* Batch 25.2 Fix1: видалено no-banner margin-top:4px (колишні 8i/9) — повітря над рядом тепер у симетричному padding-top:14 .filter-row вище; +4 давало 18/14. (.has-banner-тогл у JS лишається безшкідливим.) */
+.ph-srch{flex:1;display:flex;align-items:center;gap:6px;background:var(--band);box-shadow:var(--band-sh);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px}
 .ph-srch input{flex:1;background:none;border:none;outline:none;color:var(--ink)}
 .ph-srch input::-webkit-search-cancel-button{display:none;-webkit-appearance:none}/* глушимо нативний хрест type=search (Chrome ПК) — лишаємо власний .srch-clr; патерн Drive Lens .sr-inp */
 .ph-srch input::placeholder{color:var(--muted)}
@@ -302,7 +307,7 @@ body:not(.has-banner) #sc-equipment .filter-row{margin-top:4px}
 .srch-clr[hidden]{display:none}/* A36: .srch-clr має display:flex → рівна специфічність з UA [hidden] → підняти під клас */
 .srch-clr svg{width:13px;height:13px}
 .srch-clr:active{background:var(--border-2)}
-.flt-btn{display:flex;align-items:center;gap:5px;padding:8px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--rs);color:var(--ink-2);font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;transition:all .12s;flex-shrink:0}
+.flt-btn{display:flex;align-items:center;gap:5px;padding:8px 12px;background:var(--band);box-shadow:var(--band-sh);border:1px solid var(--border);border-radius:var(--rs);color:var(--ink-2);font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;transition:all .12s;flex-shrink:0}
 .flt-btn:active{background:var(--border)}
 .flt-btn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 /* Batch 11 EQ-FILTER-SUMMARY: лічильник результатів фільтра в Tab 4 cross-SR */
@@ -317,6 +322,8 @@ body:not(.has-banner) #sc-equipment .filter-row{margin-top:4px}
 .ph-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh1);cursor:pointer;transition:border-color .12s,background .12s}
 .ph-card:active{background:var(--card-2);border-color:var(--border-2)}
 .ph-card.sel{border:1.5px solid var(--accent);background:var(--bg-soft)}
+/* Batch 25.1 #1 SEL-WELL (dark-only): після +Lift --bg-soft(#11161e)≈--bg(#0a0e14) → обрана тонула, тримала лише рамка. Well пересаджено вище фону (−7.8 card / +10.6 bg), характер узгоджено зі світлою (там обрана теж втоплена). Світла B locked. A8: дуальний селектор > бази (0,2,0). */
+[data-theme="dark"] .ph-card.sel,:root:not([data-theme="light"]) .ph-card.sel{background:#1a212c}
 .ph-card-l{flex-shrink:0;display:flex;flex-direction:column;gap:5px}
 .ph-card-i{flex:1;min-width:0}
 .ph-card-addr{font-size:13px;font-weight:700;color:var(--ink);line-height:1.3;word-break:break-word}
@@ -418,11 +425,16 @@ body.roomy-vh .qr-area{gap:12px}
 .sr-av.sel{background:var(--accent);color:#fff}
 .sr-opt-name{font-size:14px;font-weight:600;flex:1}
 /* Batch 9.1 EQ-DETAIL-CARDS: drill-down використовує ph-card (Tab 2 pattern), eq-det-row видалено */
-.sh-bg #sh-eq-list{padding:12px 16px 0;display:flex;flex-direction:column;gap:8px}
+.sh-bg #sh-eq-list{background:var(--bg);padding:12px 16px 16px;display:flex;flex-direction:column;gap:8px}/* Batch 25.2 Fix2: втоплена поверхня під картками (Tab2-паритет — картка --card піднімається). Світла=--bg (grouped-grey). */
+[data-theme="dark"] .sh-bg #sh-eq-list,:root:not([data-theme="light"]) .sh-bg #sh-eq-list{background:var(--bg-soft)}/* темна: --bg-soft, НЕ --bg (повний фон зливався б із бекдропом=«діра»); картка попить +14.8. A39-спліт, A8: (1,2-3,0)>база(1,1,0). */
 /* Batch 9.2 EQ-DETAIL-TINT: ph-card у drill-down sheet отримують tint за статусом цього QR коду */
-#sh-eq-list .ph-card[data-worst="crit"]{background:linear-gradient(180deg,var(--card) 0%,color-mix(in srgb,var(--crit) 6%,var(--card)) 100%)}
-#sh-eq-list .ph-card[data-worst="late"]{background:linear-gradient(180deg,var(--card) 0%,color-mix(in srgb,var(--late) 5%,var(--card)) 100%)}
-#sh-eq-list .ph-card[data-worst="warn"]{background:linear-gradient(180deg,var(--card) 0%,color-mix(in srgb,var(--warn) 5%,var(--card)) 100%)}
+#sh-eq-list .ph-card[data-worst="crit"]{background:linear-gradient(180deg,color-mix(in srgb,var(--crit) 3%,var(--card)) 0%,color-mix(in srgb,var(--crit) 8%,var(--card)) 100%)}
+#sh-eq-list .ph-card[data-worst="late"]{background:linear-gradient(180deg,color-mix(in srgb,var(--late) 2%,var(--card)) 0%,color-mix(in srgb,var(--late) 7%,var(--card)) 100%)}
+#sh-eq-list .ph-card[data-worst="warn"]{background:linear-gradient(180deg,color-mix(in srgb,var(--warn) 2%,var(--card)) 0%,color-mix(in srgb,var(--warn) 7%,var(--card)) 100%)}/* Batch 25.2 C2: шіт-паритет із .eq-card вище */
+/* Batch 25.1 #2 WARM-TINT (dark-only) — дзеркало eq-card для шіта. A8: дуальний селектор (1,3-4,0) > бази (1,2,0). */
+[data-theme="dark"] #sh-eq-list .ph-card[data-worst="crit"],:root:not([data-theme="light"]) #sh-eq-list .ph-card[data-worst="crit"]{background:linear-gradient(180deg,color-mix(in srgb,var(--crit) 3%,var(--card)) 0%,color-mix(in srgb,var(--crit) 10%,var(--card)) 100%)}
+[data-theme="dark"] #sh-eq-list .ph-card[data-worst="late"],:root:not([data-theme="light"]) #sh-eq-list .ph-card[data-worst="late"]{background:linear-gradient(180deg,color-mix(in srgb,var(--late) 3%,var(--card)) 0%,color-mix(in srgb,var(--late) 8%,var(--card)) 100%)}
+[data-theme="dark"] #sh-eq-list .ph-card[data-worst="warn"],:root:not([data-theme="light"]) #sh-eq-list .ph-card[data-worst="warn"]{background:linear-gradient(180deg,color-mix(in srgb,var(--warn) 3%,var(--card)) 0%,color-mix(in srgb,var(--warn) 8%,var(--card)) 100%)}
 
 /* PULSE BAR */
 /* ── PULSE BAR ── (removed in Batch 8b — see Roadmap principle: no duplicated context) */
@@ -1509,7 +1521,7 @@ function applyTheme(){
   html.setAttribute('data-theme', dark ? 'dark' : 'light');
   html.setAttribute('data-theme-mode', mode);
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = dark ? '#0d1117' : '#eef3f2';
+  if (meta) meta.content = dark ? '#0a0e14' : '#eef3f2';
   document.querySelectorAll('.theme-item').forEach(it => {
     it.classList.toggle('active', it.dataset.mode === mode);
   });
