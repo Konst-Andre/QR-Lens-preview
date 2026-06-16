@@ -1,18 +1,17 @@
 <!DOCTYPE html>
-<html lang="uk" data-theme="dark">
+<html lang="uk" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#0a0e14">
-<title>QR Lens — Header Compare v2</title>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#eef3f2">
+<title>QR Lens — Theme Switch compare: SNAP ↔ VT-reveal</title>
 <style>
-/* ===== РЕАЛЬНІ ТОКЕНИ з QR_Lens_preview_batch26_1.html (р.44-78) ===== */
+/* ===== РЕАЛЬНІ ТОКЕНИ QR_Lens_preview_batch26_1.html (рядки 44–78) ===== */
 :root{
   --bg:#eef3f2;--bg-soft:#e3ebe9;--card:#fff;--card-2:#f4f8f7;
   --border:#d3dedb;--border-2:#bfcecb;
   --ink:#1a1b1e;--ink-2:#3e4a46;--muted:#74827d;--muted-2:#a3afaa;
-  --ok:#2e9e5c;
+  --ok:#2e9e5c;--warn:#c8841c;--late:#e07020;--crit:#c8331c;
   --accent:#2A8C84;--accent-hover:#329A91;--accent-active:#237770;
   --accent-soft:#E8F4F2;--accent-border:rgba(42,140,132,.22);
   --accent-text:#237770;--cap-bg:var(--accent-soft);
@@ -20,12 +19,16 @@
   --sh2:0 2px 6px rgba(20,40,35,.07),0 8px 24px rgba(20,40,35,.07);
   --band:var(--bg-soft);--band-sh:inset 0 2px 4px rgba(0,0,0,.10);
   --r:14px;--rs:10px;--rxs:6px;
+  /* B27 моушн-токени (лок) */
+  --morph-dur:560ms;--menu-dur:360ms;
+  /* VT-compare tunable (повзунки) */
+  --vt-dur:500ms;--vt-ease:cubic-bezier(.42,0,.42,1);--vt-x:50%;--vt-y:50%;
 }
 [data-theme="dark"]{
   --bg:#0a0e14;--bg-soft:#11161e;--card:#232a35;--card-2:#2b3340;
   --border:#333b46;--border-2:#46505d;
   --ink:#e6edf3;--ink-2:#b7c0c8;--muted:#8b949e;--muted-2:#6e7681;
-  --ok:#3bc572;
+  --ok:#3bc572;--warn:#e5a24a;--late:#f97316;--crit:#e85d2c;
   --accent:#2A8C84;--accent-hover:#329A91;--accent-active:#237770;
   --accent-soft:#1A4540;--accent-border:rgba(42,140,132,.28);
   --accent-text:#34A097;--cap-bg:#37414f;
@@ -34,269 +37,315 @@
   --band:color-mix(in srgb,var(--card) 50%,var(--bg-soft));--band-sh:inset 0 1px 0 rgba(255,255,255,.05);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-*{-webkit-tap-highlight-color:transparent}
-html{background:var(--bg)}
-body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased;
-  padding:14px 0 300px;min-height:100vh;transition:background .2s}
-body.no-transition,body.no-transition *{transition:none!important;animation:none!important}
-button{font-family:inherit;border:none;cursor:pointer;background:none;color:inherit}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+  background:var(--bg);color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;
+  min-height:100dvh;overflow:hidden;
+  transition:background .0s; /* фон снапиться (snap-режим); VT-режим бере на себе reveal */
+}
 
-.wrap{max-width:430px;margin:0 auto;padding:0 14px}
-.legend{font-size:11px;color:var(--muted);line-height:1.5;margin:4px 2px 14px}
-.legend b{color:var(--accent-text)}
-.sec-h{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);margin:20px 2px 8px}
-
-/* ===== APP-BAR (реальні класи) ===== */
-.app-bar{background:var(--card);border-bottom:1px solid var(--border);padding:14px 16px 8px;border-radius:14px 14px 0 0;transition:background .15s,box-shadow .15s,border-color .15s}
-.bar-top{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-.brand{font-size:17px;font-weight:800;letter-spacing:-.5px;color:var(--ink);flex-shrink:0;line-height:1;pointer-events:none}
+/* ===== app-bar + хедер-родина (база рядки 118–166) ===== */
+.app-bar{background:var(--card);border-bottom:1px solid var(--border);padding:max(18px,calc(env(safe-area-inset-top,0px) + 12px)) 16px 10px;flex-shrink:0;z-index:20;position:relative}
+.bar-row{display:flex;align-items:center;gap:10px}
+.brand{font-size:17px;font-weight:800;letter-spacing:-.3px;flex-shrink:0}
 .brand em{color:var(--accent);font-style:normal}
 [data-theme="dark"] .brand em{color:#6DD8D0}
 
-.sr-pill{flex:0 1 auto;max-width:240px;display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:20px;padding:5px 10px 5px 5px;color:var(--ink);font-size:13px;font-weight:600;min-width:0;cursor:pointer;transition:background .12s,box-shadow .12s,transform .1s}
-.icon-btn{width:36px;height:36px;border:1px solid var(--border);border-radius:20px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;cursor:pointer;transition:background .12s,box-shadow .12s,transform .1s}
+.sr-pill{flex:1 1 auto;max-width:240px;display:flex;align-items:center;gap:6px;
+  background:var(--band);box-shadow:var(--band-sh); /* B27 FILL: well, мова Tab-4 */
+  border:1px solid var(--border);border-radius:20px;padding:5px 10px 5px 5px;
+  color:var(--ink);font-size:13px;font-weight:600;min-width:0;cursor:pointer;
+  transition:transform .1s}
+.sr-pill:active{transform:scale(.96)} /* B27 ПРЕС */
 .avatar{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
-.sr-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chev-ico{color:var(--muted);flex-shrink:0}
+.sr-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr-chev{margin-left:auto;color:var(--muted);flex-shrink:0;display:flex}
 
-/* ===== ВАРІАНТИ FILL ===== */
-[data-fill="v1"] .sr-pill{background:var(--bg-soft)}
-[data-fill="v1"] .icon-btn{background:var(--bg-soft)}
-[data-theme="dark"] [data-fill="v1"] .sr-pill{background:var(--card-2)}
-[data-fill="v2"] .sr-pill,[data-fill="v2"] .icon-btn{background:var(--band);box-shadow:var(--band-sh)}
-[data-fill="v3"] .sr-pill,[data-fill="v3"] .icon-btn{background:var(--card-2);border-color:var(--border-2);box-shadow:0 1px 2px rgba(20,40,35,.10),0 2px 6px rgba(20,40,35,.05)}
-[data-theme="dark"] [data-fill="v3"] .sr-pill,[data-theme="dark"] [data-fill="v3"] .icon-btn{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.30)}
+.th-wrap{position:relative;flex-shrink:0}
+.icon-btn{width:36px;height:36px;background:var(--band);box-shadow:var(--band-sh); /* B27 FILL */
+  border:1px solid var(--border);border-radius:20px;display:flex;align-items:center;justify-content:center;
+  color:var(--ink-2);cursor:pointer;transition:transform .1s}
+.icon-btn:active{transform:scale(.96)} /* B27 ПРЕС */
 
-/* ===== :active глобальний (живий хедер) — ПРЕС vs БЛІК ===== */
-body:not(.press) .sr-pill:active,body:not(.press) .icon-btn:active{background:var(--border)}
-body.press .sr-pill:active,body.press .icon-btn:active{transform:scale(.96)}
-
-/* ===== PRESS LAB — ізольовані контроли (БЕЗ дропдауна, незалежні від тумблерів) ===== */
-.lab{display:flex;flex-direction:column;gap:10px}
-.lab-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;transition:background .2s,border-color .2s}
-.lab-row .lbl{font-size:10px;font-weight:700;color:var(--muted);flex:1;line-height:1.45}
-.lab-ctl{display:flex;gap:16px;align-items:flex-start;flex-shrink:0}
-.lab-cell{display:flex;flex-direction:column;align-items:center;gap:5px}
-.lab-cell .cap{font-size:9px;color:var(--muted-2);text-align:center}
-/* база-блік: bg-soft + жорсткий active-стрибок, без scale */
-.pl-blink.icon-btn,.pl-blink.sr-pill{background:var(--bg-soft);box-shadow:none;border-color:var(--border)}
-.pl-blink:active{background:var(--border)!important;transform:none!important}
-/* scale-фікс: band-well + scale, без bg-стрибка */
-.pl-scale.icon-btn,.pl-scale.sr-pill{background:var(--band);box-shadow:var(--band-sh)}
-.pl-scale:active{transform:scale(.96)!important;background:var(--band)!important}
-.pl-pill{padding:5px 10px 5px 5px;max-width:160px}
-/* велика ізольована морф-іконка */
-.morph-ic{width:54px;height:54px;border-radius:27px;background:var(--band);box-shadow:var(--band-sh);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0}
-.morph-ic svg{width:28px;height:28px}
-
-/* ===== THEME DROPDOWN (реальний A6) ===== */
-.theme-wrap{position:relative;flex-shrink:0}
-.theme-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);box-shadow:var(--sh2);padding:4px;display:flex;flex-direction:column;gap:3px;z-index:200;animation:tm-in .12s ease-out}
-.theme-menu[hidden]{display:none}
-@keyframes tm-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-body.polish .theme-menu{transform-origin:top right;animation:tm-in-p .16s cubic-bezier(.34,1.3,.64,1)}
-@keyframes tm-in-p{from{opacity:0;transform:translateY(-6px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-.theme-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:1px solid transparent;border-radius:var(--rxs);font-size:13px;color:var(--ink);text-align:left;transition:background .1s,box-shadow .12s ease,border-color .12s ease;cursor:pointer}
-.theme-item:active{background:var(--bg-soft)}
-.theme-item .ti-icon{flex-shrink:0;color:var(--ink-2)}
-.theme-item .ti-label{flex:1}
-.theme-item .ti-check{flex-shrink:0;color:var(--accent);opacity:0;transition:opacity .1s}
-.theme-item.active{color:var(--accent-text);font-weight:600;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--accent-soft) 66%,#fff),color-mix(in srgb,var(--accent-soft) 96%,var(--accent)));
-  border-color:color-mix(in srgb,var(--accent) 24%,transparent);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(20,40,35,.07),0 1px 2px rgba(20,40,35,.11),0 3px 7px rgba(20,40,35,.07)}
-.theme-item.active .ti-icon{color:var(--accent-text)}
-.theme-item.active .ti-check{opacity:1;color:var(--accent-text)}
-[data-theme="dark"] .theme-item.active{
-  background:linear-gradient(180deg,color-mix(in srgb,var(--cap-bg) 88%,var(--accent)),var(--card));
-  border-color:color-mix(in srgb,var(--accent) 14%,transparent);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.11),inset 0 -1px 0 rgba(0,0,0,.2)}
-
-/* ===== ІКОНКА sun/moon (③: crossfade vs morph) ===== */
+/* ===== МОРФ ІКОНКИ (B27 лок: opacity на ту саму --morph-dur, smooth ease, scale .25 rot ±140) ===== */
 .th-svg{overflow:visible}
-.th-svg .th-sun,.th-svg .th-moon{transition:opacity .25s ease;transform-origin:center}
-.th-svg .th-sun{opacity:0}
-.th-svg .th-moon{opacity:1}
-[data-theme="light"] .th-svg .th-sun{opacity:1}
-[data-theme="light"] .th-svg .th-moon{opacity:0}
-[data-theme="dark"]  .th-svg .th-sun{opacity:0}
-[data-theme="dark"]  .th-svg .th-moon{opacity:1}
-/* ③ ПОЛИШ: scale+rotate-морф — помітніший (scale .3 / rotate 120) */
-body.polish .th-svg .th-sun,body.polish .th-svg .th-moon{transition:opacity .2s ease,transform .34s cubic-bezier(.34,1.3,.64,1)}
-body.polish [data-theme="light"] .th-svg .th-sun{transform:scale(1) rotate(0)}
-body.polish [data-theme="light"] .th-svg .th-moon{transform:scale(.3) rotate(120deg)}
-body.polish [data-theme="dark"]  .th-svg .th-sun{transform:scale(.3) rotate(-120deg)}
-body.polish [data-theme="dark"]  .th-svg .th-moon{transform:scale(1) rotate(0)}
+.th-svg .th-sun,.th-svg .th-moon{
+  transition:opacity var(--morph-dur) cubic-bezier(.42,0,.18,1),transform var(--morph-dur) cubic-bezier(.42,0,.18,1);
+  transform-origin:center}
+body.no-morph .th-svg .th-sun,body.no-morph .th-svg .th-moon{transition:none}
+[data-theme="light"] .th-svg .th-sun{opacity:1;transform:scale(1) rotate(0)}
+[data-theme="light"] .th-svg .th-moon{opacity:0;transform:scale(.25) rotate(140deg)}
+[data-theme="dark"]  .th-svg .th-sun{opacity:0;transform:scale(.25) rotate(-140deg)}
+[data-theme="dark"]  .th-svg .th-moon{opacity:1;transform:scale(1) rotate(0)}
 
-/* ===== Tab-4 REFERENCE ===== */
-.t4{background:var(--bg);padding:12px 16px;display:flex;gap:8px;align-items:center;transition:background .2s}
-.ph-srch{flex:1;display:flex;align-items:center;gap:6px;background:var(--band);box-shadow:var(--band-sh);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px}
-.ph-srch input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-size:16px;min-width:0}
-.ph-srch input::placeholder{color:var(--muted)}
-.flt-btn{display:flex;align-items:center;gap:5px;padding:8px 12px;background:var(--band);box-shadow:var(--band-sh);border:1px solid var(--border);border-radius:var(--rs);color:var(--ink-2);font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;flex-shrink:0}
+/* SNAP-виняток: екран снапиться, але іконка лишається живою (B27 §3) */
+.no-transition,.no-transition *{transition:none !important;animation:none !important}
+body.no-transition .th-svg .th-sun,body.no-transition .th-svg .th-moon{
+  transition:opacity var(--morph-dur) cubic-bezier(.42,0,.18,1),transform var(--morph-dur) cubic-bezier(.42,0,.18,1) !important}
 
-/* ===== тіло-екран ===== */
-.scr{background:var(--card);border-radius:0 0 14px 14px;border:1px solid var(--border);border-top:none;overflow:hidden}
-.card{margin:12px 16px;padding:14px;background:var(--card-2);border:1px solid var(--border);border-radius:var(--r);transition:background .14s,border-color .14s}
-.card h4{font-size:13px;color:var(--ink);margin-bottom:6px}
-.card p{font-size:12px;color:var(--muted)}
-.fnav{display:flex;gap:4px;justify-content:space-around;padding:10px 8px;background:var(--card);border-top:1px solid var(--border);transition:background .15s,border-color .15s}
-.fnav span{font-size:10px;color:var(--muted);padding:6px 10px;border-radius:10px;transition:color .14s,background .14s}
-.fnav span.on{color:var(--accent-text);background:var(--cap-bg)}
+/* ===== ДРОПДАУН (B27 пружина grow-from-corner 360ms) ===== */
+.theme-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:168px;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);box-shadow:var(--sh2);padding:4px;display:flex;flex-direction:column;gap:3px;z-index:200;
+  transform-origin:top right;animation:tm-in var(--menu-dur) cubic-bezier(.34,1.56,.64,1)}
+.theme-menu[hidden]{display:none}
+@keyframes tm-in{from{opacity:0;transform:translateY(-10px) scale(.85)}to{opacity:1;transform:translateY(0) scale(1)}}
+.theme-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--rxs);background:transparent;border:1px solid transparent;color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;text-align:left}
+.theme-item .ti-ico{flex-shrink:0;color:var(--muted);display:flex}
+.theme-item .ti-check{margin-left:auto;flex-shrink:0;color:var(--accent);opacity:0}
+.theme-item.active{color:var(--accent-text);font-weight:600;background:var(--accent-soft);border-color:var(--accent-border)}
+.theme-item.active .ti-ico,.theme-item.active .ti-check{color:var(--accent-text);opacity:1}
 
-/* ===== RAIL ===== */
-.rail{display:flex;flex-direction:column;gap:10px}
-.spec{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;transition:background .2s,border-color .2s}
-.spec .lbl{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.3px}
-.spec .row{display:flex;align-items:center;gap:8px}
+/* ===== контент (band-банер, картки, семантика) ===== */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.ph-banner{display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--band);box-shadow:var(--band-sh);border-bottom:1px solid var(--border);border-left:4px solid var(--accent)}
+.ph-b-ico{color:var(--accent);display:flex;flex-shrink:0}
+.ph-b-txt{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.body-pad{padding:14px 16px 8px}
+.sec-eb{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:4px 2px 9px}
+.eq-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;box-shadow:var(--sh1);margin-bottom:9px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:transform .1s}
+.eq-card:active{transform:scale(.98)}
+.eq-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.eq-tit{font-size:13.5px;font-weight:600}
+.eq-sub{font-size:11.5px;color:var(--muted);margin-top:1px}
+.eq-card[data-w="crit"]{background:linear-gradient(180deg,color-mix(in srgb,var(--crit) 4%,var(--card)),color-mix(in srgb,var(--crit) 9%,var(--card)))}
+.eq-card[data-w="crit"] .eq-dot{background:var(--crit)}
+.eq-card[data-w="warn"]{background:linear-gradient(180deg,color-mix(in srgb,var(--warn) 4%,var(--card)),color-mix(in srgb,var(--warn) 8%,var(--card)))}
+.eq-card[data-w="warn"] .eq-dot{background:var(--warn)}
+.eq-card[data-w="ok"] .eq-dot{background:var(--ok)}
+.cta{display:flex;align-items:center;justify-content:space-between;width:100%;padding:13px 14px;border-radius:var(--rs);border:1px solid var(--border);background:var(--card);color:var(--ink);font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--sh1);font-family:inherit;margin-top:4px;transition:transform .1s}
+.cta:active{transform:scale(.98)}
+.cta .c-go{color:var(--accent-text);font-size:12px}
 
-/* ===== BOTTOM PANEL ===== */
-.panel{position:fixed;left:0;right:0;bottom:0;z-index:500;background:var(--card);border-top:1px solid var(--border);box-shadow:var(--sh2);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));transition:background .2s,border-color .2s}
-.panel .wrap{padding:0 2px}
-.pr{display:flex;align-items:center;gap:8px;margin:7px 0}
-.pr .k{font-size:10px;font-weight:800;letter-spacing:.3px;color:var(--muted);width:62px;flex-shrink:0;text-transform:uppercase}
-.seg{display:flex;gap:4px;flex:1;background:var(--bg-soft);border:1px solid var(--border);border-radius:9px;padding:3px}
-.seg button{flex:1;padding:6px 4px;border-radius:6px;font-size:11px;font-weight:700;color:var(--muted);transition:all .15s;line-height:1.1}
-.seg button.on{background:var(--accent);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+/* ===== bottom-nav (спрощена капсула — не предмет цього компера) ===== */
+.bottom-nav{position:relative;display:flex;background:var(--card);border-top:1px solid var(--border);flex-shrink:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+.nav-i{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0;font-size:10px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;font-family:inherit;border-radius:14px}
+.nav-i .ni-ico{display:flex}
+.nav-i.act{color:var(--accent-text);background:var(--cap-bg);border:1px solid var(--accent-border)}
+[data-theme="dark"] .nav-i.act{border:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px color-mix(in srgb,var(--accent) 16%,transparent)}
+
+/* ===== VT-reveal (clip-path коло, origin+dur+ease через CSS vars) ===== */
+::view-transition-old(root){animation:none}
+::view-transition-new(root){animation:vt-reveal var(--vt-dur) var(--vt-ease)}
+@keyframes vt-reveal{
+  from{clip-path:circle(0% at var(--vt-x) var(--vt-y))}
+  to{clip-path:circle(150% at var(--vt-x) var(--vt-y))}
+}
+
+/* ===== нижня панель керування (під палець; його патерн) ===== */
+.panel{flex-shrink:0;background:var(--card-2);border-top:1px solid var(--border);padding:9px 14px calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:50}
+.p-mode{display:flex;gap:6px}
+.p-mode button{flex:1;padding:9px;border-radius:var(--rs);border:1px solid var(--border);background:var(--card);color:var(--ink-2);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.p-mode button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.p-row{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--muted)}
+.p-row label{flex-shrink:0;min-width:74px;font-weight:600;color:var(--ink-2)}
+.p-row input[type=range]{flex:1;accent-color:var(--accent)}
+.p-row select{flex:1;padding:5px 7px;border-radius:var(--rxs);border:1px solid var(--border);background:var(--card);color:var(--ink);font-size:11.5px;font-family:inherit}
+.p-row .val{min-width:48px;text-align:right;font-variant-numeric:tabular-nums;color:var(--accent-text);font-weight:700}
+.p-flags{display:flex;gap:14px;font-size:11.5px;color:var(--ink-2)}
+.p-flags label{display:flex;align-items:center;gap:5px;cursor:pointer}
+.p-disabled{opacity:.4;pointer-events:none}
+.vt-warn{display:none;background:var(--warn-soft,rgba(200,132,28,.14));color:var(--warn);border:1px solid var(--warn);border-radius:var(--rxs);padding:6px 9px;font-size:11px;font-weight:600}
 
 @media (prefers-reduced-motion:reduce){
-  .theme-menu,body.polish .theme-menu{animation:none}
-  body.press .sr-pill:active,body.press .icon-btn:active,.pl-scale:active{transform:none!important}
-  .th-svg .th-sun,.th-svg .th-moon,body.polish .th-svg .th-sun,body.polish .th-svg .th-moon{transition:opacity .12s}
+  .theme-menu{animation:none}
+  .th-svg .th-sun,.th-svg .th-moon{transition:none}
+  ::view-transition-new(root){animation:none}
 }
 </style>
 </head>
-<body class="press">
-<div class="wrap">
-  <div class="legend">
-    <b>QR Lens — Header Compare v2.</b> Тепер прес ① і морф ③ — В ОКРЕМІЙ Press Lab (без дропдауна).
-    Лочимо по черзі: <b>fill → прес → switch → ③</b>. V1 = поточна база (dark = half-fix #4).
-  </div>
+<body class="">
 
-  <div class="sec-h">Живий хедер + екран</div>
-  <div class="scr">
-    <div class="app-bar" id="liveBar" data-fill="v2">
-      <div class="bar-top">
-        <div class="brand">QR<em>·</em>Lens</div>
-        <button class="sr-pill" id="srBtn">
-          <div class="avatar">Б</div><span class="sr-nm">Бутуліна Владислава</span>
-          <svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+<header class="app-bar">
+  <div class="bar-row">
+    <div class="brand">QR <em>Lens</em></div>
+    <button class="sr-pill" type="button">
+      <span class="avatar">ЗЮ</span>
+      <span class="sr-name">Зіновьєва Ю.</span>
+      <span class="sr-chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+    </button>
+    <div class="th-wrap">
+      <button class="icon-btn" id="btnTheme" type="button" aria-label="Тема">
+        <svg class="th-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <g class="th-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></g>
+          <g class="th-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></g>
+        </svg>
+      </button>
+      <div class="theme-menu" id="themeMenu" role="menu" hidden>
+        <button class="theme-item" data-mode="light" role="menuitemradio">
+          <span class="ti-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>
+          <span>Світла</span><span class="ti-check"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
         </button>
-        <div class="theme-wrap">
-          <button class="icon-btn" id="btnTheme" aria-label="Тема" aria-haspopup="true" aria-expanded="false">
-            <svg class="th-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <g class="th-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></g>
-              <g class="th-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></g>
-            </svg>
-          </button>
-          <div class="theme-menu" id="themeMenu" role="menu" hidden>
-            <button class="theme-item" data-mode="light" role="menuitemradio"><svg class="ti-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg><span class="ti-label">Світла</span><svg class="ti-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
-            <button class="theme-item" data-mode="dark" role="menuitemradio"><svg class="ti-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><span class="ti-label">Темна</span><svg class="ti-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
-            <button class="theme-item" data-mode="auto" role="menuitemradio"><svg class="ti-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3 A9 9 0 0 1 12 21 Z" fill="currentColor" stroke="none"/></svg><span class="ti-label">Системна</span><svg class="ti-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
-          </div>
-        </div>
+        <button class="theme-item" data-mode="dark" role="menuitemradio">
+          <span class="ti-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+          <span>Темна</span><span class="ti-check"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        </button>
+        <button class="theme-item" data-mode="auto" role="menuitemradio">
+          <span class="ti-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></span>
+          <span>Системна</span><span class="ti-check"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        </button>
       </div>
     </div>
-    <div class="t4">
-      <div class="ph-srch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="Пошук обладнання…" readonly></div>
-      <button class="flt-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Фільтри</button>
-    </div>
-    <div class="card"><h4>Аптека «Бажаємо здоровʼя» №12</h4><p>пр. Науки, 24 · 4 одиниці · 1 критична</p></div>
-    <div class="card"><h4>Аптека «Подорожник» №7</h4><p>вул. Сумська, 110 · 6 одиниць · усе ОК</p></div>
-    <div class="fnav"><span class="on">Огляд</span><span>Топ</span><span>Аптеки</span><span>Обладнання</span></div>
   </div>
+</header>
 
-  <div class="sec-h">① Press Lab — тисни Й ТРИМАЙ (без дропдауна)</div>
-  <div class="lab">
-    <div class="lab-row">
-      <span class="lbl">Перемикач теми (іконка-кнопка).<br>Зліва — поточний жорсткий bg-стрибок (блік). Справа — scale .96, без стрибка.</span>
-      <div class="lab-ctl">
-        <span class="lab-cell"><button class="icon-btn pl-blink"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button><span class="cap">Блік база</span></span>
-        <span class="lab-cell"><button class="icon-btn pl-scale"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button><span class="cap">Scale .96</span></span>
-      </div>
-    </div>
-    <div class="lab-row">
-      <span class="lbl">Селектор представника.<br>Та сама пара: блік-стрибок vs scale-прес.</span>
-      <div class="lab-ctl">
-        <span class="lab-cell"><button class="sr-pill pl-blink pl-pill"><span class="avatar">Б</span><svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button><span class="cap">Блік база</span></span>
-        <span class="lab-cell"><button class="sr-pill pl-scale pl-pill"><span class="avatar">Б</span><svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button><span class="cap">Scale .96</span></span>
-      </div>
-    </div>
-    <div class="lab-row">
-      <span class="lbl">③ Іконка перемикача — морф спрацьовує на ЗМІНІ ТЕМИ, не на відкритті меню.<br>Тисни «Тема» знизу (Світла↔Темна) і дивись СЮДИ. Перемкни тумблер ③ для crossfade vs морф.</span>
-      <div class="lab-ctl">
-        <span class="morph-ic"><svg class="th-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g class="th-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></g><g class="th-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></g></svg></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="sec-h">Зразки fill поруч (статика — перемкни тему згори)</div>
-  <div class="rail">
-    <div class="spec" data-fill="v1"><div class="lbl">V1 · ПОТОЧНЕ (база, dark=half-fix #4)</div><div class="row">
-      <span class="sr-pill"><span class="avatar">Б</span><span class="sr-nm">Бутуліна В.</span><svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
-      <span class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
-    </div></div>
-    <div class="spec" data-fill="v2"><div class="lbl">V2 · BAND-WELL (A51 / мова Tab-4) ★</div><div class="row">
-      <span class="sr-pill"><span class="avatar">Б</span><span class="sr-nm">Бутуліна В.</span><svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
-      <span class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
-    </div></div>
-    <div class="spec" data-fill="v3"><div class="lbl">V3 · ЕЛЕВАЦІЯ + БОРДЕР</div><div class="row">
-      <span class="sr-pill"><span class="avatar">Б</span><span class="sr-nm">Бутуліна В.</span><svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
-      <span class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
-    </div></div>
-  </div>
+<div class="ph-banner">
+  <span class="ph-b-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+  <span class="ph-b-txt">Перед-візитна підготовка · 3 точки потребують уваги</span>
 </div>
 
-<div class="panel"><div class="wrap">
-  <div class="pr"><span class="k">Тема</span><div class="seg" id="segTheme"><button data-v="light">Світла</button><button data-v="dark" class="on">Темна</button></div></div>
-  <div class="pr"><span class="k">Fill</span><div class="seg" id="segFill"><button data-v="v1">V1 база</button><button data-v="v2" class="on">V2 well ★</button><button data-v="v3">V3 елев.</button></div></div>
-  <div class="pr"><span class="k">Прес (хедер)</span><div class="seg" id="segPress"><button data-v="off">Блік</button><button data-v="on" class="on">Scale .96</button></div></div>
-  <div class="pr"><span class="k">Switch</span><div class="seg" id="segSwitch"><button data-v="stagger" class="on">Стейджер (база)</button><button data-v="snap">Снап (фікс②)</button></div></div>
-  <div class="pr"><span class="k">Моушн③</span><div class="seg" id="segMotion"><button data-v="base" class="on">Crossfade</button><button data-v="polish">Морф+пружина</button></div></div>
-</div></div>
+<main class="scroll">
+  <div class="body-pad">
+    <div class="sec-eb">Обладнання аптеки</div>
+    <div class="eq-card" data-w="crit"><span class="eq-dot"></span><div><div class="eq-tit">Холодильник №2</div><div class="eq-sub">QR не зчитується · востаннє 14 дн тому</div></div></div>
+    <div class="eq-card" data-w="warn"><span class="eq-dot"></span><div><div class="eq-tit">Вітрина-стелаж А</div><div class="eq-sub">Потребує перевірки маркування</div></div></div>
+    <div class="eq-card" data-w="ok"><span class="eq-dot"></span><div><div class="eq-tit">Прилавок касовий</div><div class="eq-sub">Усе актуально</div></div></div>
+    <button class="cta" type="button">Переглянути всі точки <span class="c-go">12 →</span></button>
+  </div>
+</main>
+
+<nav class="bottom-nav">
+  <button class="nav-i act" type="button"><span class="ni-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Точки</button>
+  <button class="nav-i" type="button"><span class="ni-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>Пошук</button>
+  <button class="nav-i" type="button"><span class="ni-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg></span>Звіт</button>
+  <button class="nav-i" type="button"><span class="ni-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>Я</button>
+</nav>
+
+<section class="panel">
+  <div class="vt-warn" id="vtWarn">⚠️ View Transition API недоступний у цьому браузері — VT-режим падає на снап.</div>
+  <div class="p-mode">
+    <button id="mSnap" class="on" type="button">SNAP (лок B27)</button>
+    <button id="mVT" type="button">VT-reveal</button>
+  </div>
+  <div id="vtControls" class="p-disabled">
+    <div class="p-row"><label>Тривалість</label><input type="range" id="sDur" min="250" max="800" step="10" value="500"><span class="val" id="vDur">500ms</span></div>
+    <div class="p-row"><label>Easing</label>
+      <select id="sEase">
+        <option value="cubic-bezier(.42,0,.42,1)">smooth (.42,0,.42,1)</option>
+        <option value="cubic-bezier(.32,.72,0,1)">iOS-крива (.32,.72,0,1)</option>
+        <option value="ease-in-out">ease-in-out</option>
+        <option value="ease-out">ease-out</option>
+        <option value="linear">linear</option>
+      </select>
+    </div>
+    <div class="p-row"><label>Origin</label>
+      <select id="sOrigin">
+        <option value="item">з пункту меню (ідея GPT)</option>
+        <option value="button">з кнопки-перемикача</option>
+        <option value="center">центр екрана</option>
+        <option value="corner">верх-правий кут</option>
+      </select>
+    </div>
+  </div>
+  <div class="p-flags">
+    <label><input type="checkbox" id="fMorph" checked> морф іконки</label>
+    <label><input type="checkbox" id="fReduce"> emulate reduced-motion</label>
+  </div>
+</section>
 
 <script>
-var $=function(id){return document.getElementById(id);};
-var html=document.documentElement, body=document.body, liveBar=$('liveBar');
-var S={theme:'dark',fill:'v2',press:'on',sw:'stagger',motion:'base'};
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id);};
+  var html=document.documentElement, body=document.body;
+  var menu=$('themeMenu'), btn=$('btnTheme');
 
-function applyState(){
-  body.classList.toggle('press', S.press==='on');
-  body.classList.toggle('polish', S.motion==='polish');
-  liveBar.setAttribute('data-fill', S.fill);
-  mark('segTheme',S.theme);mark('segFill',S.fill);mark('segPress',S.press);mark('segSwitch',S.sw);mark('segMotion',S.motion);
-  document.querySelectorAll('.theme-item').forEach(function(it){it.classList.toggle('active',it.dataset.mode===S.theme);});
-}
-function mark(seg,val){$(seg).querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===val);});}
+  var MODE='snap';            // 'snap' | 'vt'
+  var CUR='light';            // поточний обраний режим теми: light|dark|auto
+  var DUR=500, EASE='cubic-bezier(.42,0,.42,1)', ORIGIN='item';
 
-function setTheme(t){
-  S.theme=t;
-  var meta=document.querySelector('meta[name="theme-color"]');
-  function paint(){
-    html.setAttribute('data-theme',t);
-    if(meta)meta.content=t==='dark'?'#0a0e14':'#eef3f2';
-    document.querySelectorAll('.theme-item').forEach(function(it){it.classList.toggle('active',it.dataset.mode===t);});
-    mark('segTheme',t);
+  function sysDark(){return matchMedia('(prefers-color-scheme:dark)').matches;}
+  function resolve(mode){return mode==='dark'?'dark':mode==='light'?'light':(sysDark()?'dark':'light');}
+  function reduceOn(){return $('fReduce').checked || matchMedia('(prefers-reduced-motion:reduce)').matches;}
+
+  function applyDOM(mode){
+    CUR=mode;
+    var theme=resolve(mode);
+    html.setAttribute('data-theme',theme);
+    var meta=document.querySelector('meta[name=theme-color]');
+    if(meta)meta.content=theme==='dark'?'#0a0e14':'#eef3f2';
+    document.querySelectorAll('.theme-item').forEach(function(it){
+      it.classList.toggle('active',it.dataset.mode===mode);
+    });
   }
-  if(S.sw==='snap'){
-    body.classList.add('no-transition'); paint();
-    requestAnimationFrame(function(){requestAnimationFrame(function(){body.classList.remove('no-transition');});});
-  } else { paint(); }
-}
 
-function bindSeg(seg,fn){$(seg).addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;fn(b.dataset.v);});}
-bindSeg('segTheme',function(v){setTheme(v);});
-bindSeg('segFill',function(v){S.fill=v;applyState();});
-bindSeg('segPress',function(v){S.press=v;applyState();});
-bindSeg('segSwitch',function(v){S.sw=v;mark('segSwitch',v);});
-bindSeg('segMotion',function(v){S.motion=v;applyState();});
+  // SNAP — миттєвий перефарб + double-rAF; іконка морфить (виняток) якщо увімкнено
+  function snapApply(mode){
+    body.classList.add('no-transition');
+    applyDOM(mode);
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      body.classList.remove('no-transition');
+    });});
+  }
 
-var btnTheme=$('btnTheme'),themeMenu=$('themeMenu');
-btnTheme.addEventListener('click',function(e){e.stopPropagation();var op=themeMenu.hidden;themeMenu.hidden=!op;btnTheme.setAttribute('aria-expanded',String(op));});
-document.querySelectorAll('.theme-item').forEach(function(item){item.addEventListener('click',function(e){e.stopPropagation();var m=item.dataset.mode;setTheme(m==='auto'?'dark':m);themeMenu.hidden=true;btnTheme.setAttribute('aria-expanded','false');});});
-document.addEventListener('click',function(e){if(!themeMenu.hidden&&!themeMenu.contains(e.target)&&!btnTheme.contains(e.target)){themeMenu.hidden=true;btnTheme.setAttribute('aria-expanded','false');}});
+  // VT — clip-path коло; origin/dur/ease через CSS vars
+  function vtApply(mode,originEl){
+    var x=innerWidth/2, y=innerHeight/2;
+    if((ORIGIN==='item'||ORIGIN==='button') && originEl){
+      var r=originEl.getBoundingClientRect();
+      x=r.left+r.width/2; y=r.top+r.height/2;
+    } else if(ORIGIN==='corner'){ x=innerWidth-24; y=24; }
+    html.style.setProperty('--vt-x',(x/innerWidth*100).toFixed(2)+'%');
+    html.style.setProperty('--vt-y',(y/innerHeight*100).toFixed(2)+'%');
+    html.style.setProperty('--vt-dur',DUR+'ms');
+    html.style.setProperty('--vt-ease',EASE);
+    document.startViewTransition(function(){applyDOM(mode);});
+  }
 
-applyState();
+  function setTheme(mode,originEl){
+    if(MODE==='vt' && document.startViewTransition && !reduceOn()){ vtApply(mode,originEl); }
+    else { snapApply(mode); }
+  }
+
+  // ---- меню ----
+  function openMenu(){menu.hidden=false;}
+  function closeMenu(){menu.hidden=true;}
+  btn.addEventListener('click',function(e){
+    e.stopPropagation();
+    if(menu.hidden){openMenu();}
+    else{ // повторний тап по кнопці = швидке перемикання light↔dark (origin=кнопка)
+      closeMenu();
+    }
+  });
+  document.querySelectorAll('.theme-item').forEach(function(it){
+    it.addEventListener('click',function(e){
+      e.stopPropagation();
+      var mode=it.dataset.mode;
+      // origin-from-item: знімаємо rect ДО закриття меню (інакше воно зникне зі снапшота — урок із розбору)
+      var originEl = (ORIGIN==='item') ? it : (ORIGIN==='button' ? btn : null);
+      var rectHold=null;
+      if(originEl){var rr=originEl.getBoundingClientRect();rectHold={getBoundingClientRect:function(){return rr;}};}
+      closeMenu();
+      setTheme(mode, rectHold);
+    });
+  });
+  document.addEventListener('click',function(){if(!menu.hidden)closeMenu();});
+
+  // ---- панель ----
+  function setMode(m){
+    MODE=m;
+    $('mSnap').classList.toggle('on',m==='snap');
+    $('mVT').classList.toggle('on',m==='vt');
+    $('vtControls').classList.toggle('p-disabled',m!=='vt');
+  }
+  $('mSnap').addEventListener('click',function(){setMode('snap');});
+  $('mVT').addEventListener('click',function(){setMode('vt');});
+  $('sDur').addEventListener('input',function(){DUR=+this.value;$('vDur').textContent=DUR+'ms';});
+  $('sEase').addEventListener('change',function(){EASE=this.value;});
+  $('sOrigin').addEventListener('change',function(){ORIGIN=this.value;});
+  $('fMorph').addEventListener('change',function(){body.classList.toggle('no-morph',!this.checked);});
+
+  // ---- feature detect ----
+  if(!document.startViewTransition){ $('vtWarn').style.display='block'; }
+
+  // init: без fade на launch
+  body.classList.add('no-transition');
+  applyDOM('light');
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    body.classList.remove('no-transition');
+  });});
+})();
 </script>
 </body>
 </html>
