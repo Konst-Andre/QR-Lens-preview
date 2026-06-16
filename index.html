@@ -1,1689 +1,302 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="QR Lens">
-<!-- Batch 24: theme-color (dynamic) — оновлюється inline script нижче і toggle JS. Default dark для PWA splash. -->
 <meta name="theme-color" content="#0a0e14">
-<!-- Batch 24: FOUC fix — встановити data-theme ДО CSS apply і first paint. iOS 18+ listener додано в body JS. -->
-<script>
-  (function(){
-    try {
-      var saved = localStorage.getItem('qr-theme');           // null|'auto'|'light'|'dark'
-      var mode  = saved || 'auto';
-      var dark  = mode === 'dark' || (mode === 'auto' && matchMedia('(prefers-color-scheme:dark)').matches);
-      var html  = document.documentElement;
-      html.setAttribute('data-theme', dark ? 'dark' : 'light');
-      html.setAttribute('data-theme-mode', mode);
-      var meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.content = dark ? '#0a0e14' : '#eef3f2';
-    } catch(e) {
-      // Fallback: localStorage заблоковано / private mode → залишити default
-      document.documentElement.setAttribute('data-theme', 'dark');
-      document.documentElement.setAttribute('data-theme-mode', 'auto');
-    }
-  })();
-</script>
-<title>QR Lens</title>
-<!-- Batch 23: PWA manifest + iOS/Android icons. ?v=batchNN — cache-busting, інкрементувати при зміні іконок -->
-<link rel="manifest" href="manifest.json?v=batch29">
-<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=batch29">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png?v=batch29">
-<link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png?v=batch29">
-<link rel="shortcut icon" href="icons/favicon.ico?v=batch29">
+<title>QR Lens — Header Compare v2</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-
-/* QR-revamp Фаза 1 · Batch 25 · світла тема Slate-Teal (B) — device-locked.
-   Холодніше/технічніше, teal-підтон у нейтралах в'яже з акцентом #2A8C84.
-   Темна, акцент, семантика — НЕ чіпані. Заміна теплого крему на холодний Slate-Teal. */
+/* ===== РЕАЛЬНІ ТОКЕНИ з QR_Lens_preview_batch26_1.html (р.44-78) ===== */
 :root{
   --bg:#eef3f2;--bg-soft:#e3ebe9;--card:#fff;--card-2:#f4f8f7;
   --border:#d3dedb;--border-2:#bfcecb;
   --ink:#1a1b1e;--ink-2:#3e4a46;--muted:#74827d;--muted-2:#a3afaa;
-  --ok:#2e9e5c;--warn:#c8841c;--late:#e07020;--crit:#c8331c;
-  --ok-soft:rgba(46,158,92,.12);--warn-soft:rgba(200,132,28,.12);
-  --late-soft:rgba(224,112,32,.12);--crit-soft:rgba(200,51,28,.12);
-  /* Slate Teal #2A8C84 — canonical */
+  --ok:#2e9e5c;
   --accent:#2A8C84;--accent-hover:#329A91;--accent-active:#237770;
-  --accent-soft:#E8F4F2;--accent-soft-2:rgba(42,140,132,.10);
-  --accent-border:rgba(42,140,132,.22);--accent-glow:rgba(42,140,132,.12);
-  /* B26 (2a): accent-text = active-текст nav + D2 (A1, новий токен). cap-bg = fill капсули nav + база D2-dark-градієнта (A56/A6). */
-  --accent-text:#237770;--cap-bg:var(--accent-soft); /* світла: cap-bg = accent-soft (#E8F4F2) */
-  --nav-dur:400ms;--nav-ease:cubic-bezier(.34,1.3,.64,1); /* A56/A57: nav-капсула — мʼякша пружина за seg */
+  --accent-soft:#E8F4F2;--accent-border:rgba(42,140,132,.22);
+  --accent-text:#237770;--cap-bg:var(--accent-soft);
   --sh1:0 1px 2px rgba(20,40,35,.05),0 2px 8px rgba(20,40,35,.05);
   --sh2:0 2px 6px rgba(20,40,35,.07),0 8px 24px rgba(20,40,35,.07);
-  /* Batch 25.2 поліш#2: band-власний токен (НЕ чіпаємо --bg-soft — його реюзають sr-pill/icon-btn/ph-rank; регрес-урок #1). Світла=Well (A51 inset). */
   --band:var(--bg-soft);--band-sh:inset 0 2px 4px rgba(0,0,0,.10);
-  --r:14px;--rs:10px;--rxs:6px;--sab:env(safe-area-inset-bottom,0px);
+  --r:14px;--rs:10px;--rxs:6px;
 }
 [data-theme="dark"]{
   --bg:#0a0e14;--bg-soft:#11161e;--card:#232a35;--card-2:#2b3340;
   --border:#333b46;--border-2:#46505d;
   --ink:#e6edf3;--ink-2:#b7c0c8;--muted:#8b949e;--muted-2:#6e7681;
-  --ok:#3bc572;--warn:#e5a24a;--late:#f97316;--crit:#e85d2c;
-  --ok-soft:rgba(59,197,114,.15);--warn-soft:rgba(229,162,74,.15);
-  --late-soft:rgba(249,115,22,.15);--crit-soft:rgba(232,93,44,.15);
+  --ok:#3bc572;
   --accent:#2A8C84;--accent-hover:#329A91;--accent-active:#237770;
-  --accent-soft:#1A4540;--accent-soft-2:rgba(42,140,132,.10);
-  --accent-border:rgba(42,140,132,.28);--accent-glow:rgba(42,140,132,.15);
-  --accent-text:#34A097;--cap-bg:#37414f; /* B26 (2a): темна cap-bg=DB (тон +2, НЕ --card-2 #2b3340; A45 — обʼєм тоном) */
+  --accent-soft:#1A4540;--accent-border:rgba(42,140,132,.28);
+  --accent-text:#34A097;--cap-bg:#37414f;
   --sh1:inset 0 1px 0 rgba(255,255,255,.055),inset 0 -1px 0 rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.28);
   --sh2:0 2px 6px rgba(0,0,0,.28),0 12px 28px rgba(0,0,0,.14);
-  --band:color-mix(in srgb,var(--card) 50%,var(--bg-soft));--band-sh:inset 0 1px 0 rgba(255,255,255,.05); /* Batch 25.2: темна=Lift-M (≈+10, біля #1a212c) + A45 top-хайлайт */
-}
-@media(prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#0a0e14;--bg-soft:#11161e;--card:#232a35;--card-2:#2b3340;
-    --border:#333b46;--border-2:#46505d;
-    --ink:#e6edf3;--ink-2:#b7c0c8;--muted:#8b949e;--muted-2:#6e7681;
-    --ok:#3bc572;--warn:#e5a24a;--late:#f97316;--crit:#e85d2c;
-    --ok-soft:rgba(59,197,114,.15);--warn-soft:rgba(229,162,74,.15);
-    --late-soft:rgba(249,115,22,.15);--crit-soft:rgba(232,93,44,.15);
-    --accent:#2A8C84;--accent-hover:#329A91;--accent-active:#237770;
-    --accent-soft:#1A4540;--accent-soft-2:rgba(42,140,132,.10);
-    --accent-border:rgba(42,140,132,.28);--accent-glow:rgba(42,140,132,.15);
-    --accent-text:#34A097;--cap-bg:#37414f; /* B26 (2a): auto-dark паритет — cap-bg=DB, НЕ --card-2 */
-    --sh1:inset 0 1px 0 rgba(255,255,255,.055),inset 0 -1px 0 rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.28);
-    --sh2:0 2px 6px rgba(0,0,0,.28),0 12px 28px rgba(0,0,0,.14);
-    --band:color-mix(in srgb,var(--card) 50%,var(--bg-soft));--band-sh:inset 0 1px 0 rgba(255,255,255,.05); /* Batch 25.2: auto-dark паритет із [data-theme=dark] */
-  }
+  --band:color-mix(in srgb,var(--card) 50%,var(--bg-soft));--band-sh:inset 0 1px 0 rgba(255,255,255,.05);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body,#app{touch-action:pan-x pan-y}
-/* Batch 17 IOS-TEXT-AUTOFIT-FIX: блокуємо iOS Safari auto text scaling (підвищується при double-tap на короткий текст з inline-em) */
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-/* Batch 24: html background через CSS var — correctly follows data-theme (set by FOUC inline script in <head>). Замінює media-only fallback. */
-html{background:var(--bg)}
-html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:var(--card)}
-body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased;touch-action:manipulation}
 *{-webkit-tap-highlight-color:transparent}
-.brand,.app-bar,.timestamp,.ctx-layer,.bottom-nav{-webkit-user-select:none;user-select:none;touch-action:manipulation}
-/* Batch 17 BRAND-NO-TOUCH: .brand display-only (нема onclick) → pointer-events:none остаточно блокує double-tap text autofit на iOS, який не покривався самим touch-action:manipulation через inline <em> child */
-.brand{pointer-events:none}
-button:disabled{touch-action:none;pointer-events:none}
-/* Batch 18 LONG-PRESS-BLOCK: iOS long-press selection menu (callout) псує premium-feel native додатка.
-   Блокуємо selection і callout глобально на body. Виняток — input/textarea (пошук обладнання,
-   пошук аптек) щоб залишити можливість правки тексту і вставки. Кнопка копіювання QR — окрема. */
-body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
-input,select,textarea{font-size:16px!important;font-family:inherit}
+html{background:var(--bg)}
+body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased;
+  padding:14px 0 300px;min-height:100vh;transition:background .2s}
+body.no-transition,body.no-transition *{transition:none!important;animation:none!important}
 button{font-family:inherit;border:none;cursor:pointer;background:none;color:inherit}
-#app{max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
-/* APP BAR */
-.app-bar{background:var(--card);border-bottom:1px solid var(--border);padding:max(18px,calc(env(safe-area-inset-top, 0px) + 12px)) 16px 8px;flex-shrink:0;z-index:20;position:relative;transition:box-shadow .15s,border-color .15s}
-/* Batch 8e TAB2-UNIFY-FIX: unified-filter трюк прибрано — filter-row завжди має чітку сепарацію від app-bar і ph-banner */
-.app-bar.scrolled{box-shadow:var(--sh2)}
+
+.wrap{max-width:430px;margin:0 auto;padding:0 14px}
+.legend{font-size:11px;color:var(--muted);line-height:1.5;margin:4px 2px 14px}
+.legend b{color:var(--accent-text)}
+.sec-h{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);margin:20px 2px 8px}
+
+/* ===== APP-BAR (реальні класи) ===== */
+.app-bar{background:var(--card);border-bottom:1px solid var(--border);padding:14px 16px 8px;border-radius:14px 14px 0 0;transition:background .15s,box-shadow .15s,border-color .15s}
 .bar-top{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-.brand{font-size:17px;font-weight:800;letter-spacing:-.5px;color:var(--ink);flex-shrink:0;line-height:1}
+.brand{font-size:17px;font-weight:800;letter-spacing:-.5px;color:var(--ink);flex-shrink:0;line-height:1;pointer-events:none}
 .brand em{color:var(--accent);font-style:normal}
 [data-theme="dark"] .brand em{color:#6DD8D0}
-.sr-pill{flex:1 1 auto;max-width:240px;display:flex;align-items:center;gap:6px;background:var(--bg-soft);border:1px solid var(--border);border-radius:20px;padding:5px 10px 5px 5px;color:var(--ink);font-size:13px;font-weight:600;min-width:0;transition:background .12s;cursor:pointer}
-.sr-pill:active{background:var(--border)}
+
+.sr-pill{flex:0 1 auto;max-width:240px;display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:20px;padding:5px 10px 5px 5px;color:var(--ink);font-size:13px;font-weight:600;min-width:0;cursor:pointer;transition:background .12s,box-shadow .12s,transform .1s}
+.icon-btn{width:36px;height:36px;border:1px solid var(--border);border-radius:20px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;cursor:pointer;transition:background .12s,box-shadow .12s,transform .1s}
 .avatar{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
 .sr-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.icon-btn{width:36px;height:36px;background:var(--bg-soft);border:1px solid var(--border);border-radius:20px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;cursor:pointer;transition:background .12s}
-.icon-btn:active{background:var(--border)}
-/* Batch 8h THEME-TOGGLE-V2: cross-fade sun/moon — opacity only (universal iOS/Android compat, без transform quirks).
-   Default state (no data-theme) — місяць (вже dark-by-default). */
+.chev-ico{color:var(--muted);flex-shrink:0}
+
+/* ===== ВАРІАНТИ FILL ===== */
+[data-fill="v1"] .sr-pill{background:var(--bg-soft)}
+[data-fill="v1"] .icon-btn{background:var(--bg-soft)}
+[data-theme="dark"] [data-fill="v1"] .sr-pill{background:var(--card-2)}
+[data-fill="v2"] .sr-pill,[data-fill="v2"] .icon-btn{background:var(--band);box-shadow:var(--band-sh)}
+[data-fill="v3"] .sr-pill,[data-fill="v3"] .icon-btn{background:var(--card-2);border-color:var(--border-2);box-shadow:0 1px 2px rgba(20,40,35,.10),0 2px 6px rgba(20,40,35,.05)}
+[data-theme="dark"] [data-fill="v3"] .sr-pill,[data-theme="dark"] [data-fill="v3"] .icon-btn{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.30)}
+
+/* ===== :active глобальний (живий хедер) — ПРЕС vs БЛІК ===== */
+body:not(.press) .sr-pill:active,body:not(.press) .icon-btn:active{background:var(--border)}
+body.press .sr-pill:active,body.press .icon-btn:active{transform:scale(.96)}
+
+/* ===== PRESS LAB — ізольовані контроли (БЕЗ дропдауна, незалежні від тумблерів) ===== */
+.lab{display:flex;flex-direction:column;gap:10px}
+.lab-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;transition:background .2s,border-color .2s}
+.lab-row .lbl{font-size:10px;font-weight:700;color:var(--muted);flex:1;line-height:1.45}
+.lab-ctl{display:flex;gap:16px;align-items:flex-start;flex-shrink:0}
+.lab-cell{display:flex;flex-direction:column;align-items:center;gap:5px}
+.lab-cell .cap{font-size:9px;color:var(--muted-2);text-align:center}
+/* база-блік: bg-soft + жорсткий active-стрибок, без scale */
+.pl-blink.icon-btn,.pl-blink.sr-pill{background:var(--bg-soft);box-shadow:none;border-color:var(--border)}
+.pl-blink:active{background:var(--border)!important;transform:none!important}
+/* scale-фікс: band-well + scale, без bg-стрибка */
+.pl-scale.icon-btn,.pl-scale.sr-pill{background:var(--band);box-shadow:var(--band-sh)}
+.pl-scale:active{transform:scale(.96)!important;background:var(--band)!important}
+.pl-pill{padding:5px 10px 5px 5px;max-width:160px}
+/* велика ізольована морф-іконка */
+.morph-ic{width:54px;height:54px;border-radius:27px;background:var(--band);box-shadow:var(--band-sh);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0}
+.morph-ic svg{width:28px;height:28px}
+
+/* ===== THEME DROPDOWN (реальний A6) ===== */
+.theme-wrap{position:relative;flex-shrink:0}
+.theme-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);box-shadow:var(--sh2);padding:4px;display:flex;flex-direction:column;gap:3px;z-index:200;animation:tm-in .12s ease-out}
+.theme-menu[hidden]{display:none}
+@keyframes tm-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+body.polish .theme-menu{transform-origin:top right;animation:tm-in-p .16s cubic-bezier(.34,1.3,.64,1)}
+@keyframes tm-in-p{from{opacity:0;transform:translateY(-6px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.theme-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:1px solid transparent;border-radius:var(--rxs);font-size:13px;color:var(--ink);text-align:left;transition:background .1s,box-shadow .12s ease,border-color .12s ease;cursor:pointer}
+.theme-item:active{background:var(--bg-soft)}
+.theme-item .ti-icon{flex-shrink:0;color:var(--ink-2)}
+.theme-item .ti-label{flex:1}
+.theme-item .ti-check{flex-shrink:0;color:var(--accent);opacity:0;transition:opacity .1s}
+.theme-item.active{color:var(--accent-text);font-weight:600;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--accent-soft) 66%,#fff),color-mix(in srgb,var(--accent-soft) 96%,var(--accent)));
+  border-color:color-mix(in srgb,var(--accent) 24%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(20,40,35,.07),0 1px 2px rgba(20,40,35,.11),0 3px 7px rgba(20,40,35,.07)}
+.theme-item.active .ti-icon{color:var(--accent-text)}
+.theme-item.active .ti-check{opacity:1;color:var(--accent-text)}
+[data-theme="dark"] .theme-item.active{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--cap-bg) 88%,var(--accent)),var(--card));
+  border-color:color-mix(in srgb,var(--accent) 14%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11),inset 0 -1px 0 rgba(0,0,0,.2)}
+
+/* ===== ІКОНКА sun/moon (③: crossfade vs morph) ===== */
 .th-svg{overflow:visible}
 .th-svg .th-sun,.th-svg .th-moon{transition:opacity .25s ease;transform-origin:center}
 .th-svg .th-sun{opacity:0}
 .th-svg .th-moon{opacity:1}
 [data-theme="light"] .th-svg .th-sun{opacity:1}
 [data-theme="light"] .th-svg .th-moon{opacity:0}
-[data-theme="dark"] .th-svg .th-sun{opacity:0}
-[data-theme="dark"] .th-svg .th-moon{opacity:1}
-/* Batch 24: Theme dropdown menu (3-state auto/light/dark) */
-.theme-wrap{position:relative;flex-shrink:0}
-.theme-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);box-shadow:var(--sh2);padding:4px;display:flex;flex-direction:column;gap:3px;z-index:200;animation:tm-in .12s ease-out} /* B26: gap:3px — повітря під drop-тінь D2-капсули (A6 §2) */
-.theme-menu[hidden]{display:none}
-@keyframes tm-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-/* Batch 24.1: Accessibility — респектуємо системне reduce motion */
-@media (prefers-reduced-motion: reduce){.theme-menu{animation:none}}
-/* Batch 24.1: Transition prevention при init applyTheme — без fade на launch */
-.no-transition,.no-transition *{transition:none !important}
-.theme-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:1px solid transparent;border-radius:var(--rxs);font-size:13px;color:var(--ink);text-align:left;transition:background .1s,box-shadow .12s ease,border-color .12s ease;cursor:pointer} /* B26: border 1px transparent — резерв (active не зсуває лейаут); transition += shadow/border (A6 §2) */
-.theme-item:active{background:var(--bg-soft)}
-.theme-item .ti-icon{flex-shrink:0;color:var(--ink-2)}
-.theme-item .ti-label{flex:1}
-.theme-item .ti-check{flex-shrink:0;color:var(--accent);opacity:0;transition:opacity .1s}
-/* B26 (A6 §3): обрана тема = глянцева капсула «D2». Світла = баланс «m». ink-тинт rgba(20,40,35) (QR). */
-.theme-item.active{color:var(--accent-text);font-weight:600;
-  background:linear-gradient(180deg,
-    color-mix(in srgb,var(--accent-soft) 66%,#fff),
-    color-mix(in srgb,var(--accent-soft) 96%,var(--accent)));
-  border-color:color-mix(in srgb,var(--accent) 24%,transparent);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(20,40,35,.07),0 1px 2px rgba(20,40,35,.11),0 3px 7px rgba(20,40,35,.07)}
-.theme-item.active .ti-icon{color:var(--accent-text)}
-.theme-item.active .ti-check{opacity:1;color:var(--accent-text)}
-[data-theme="dark"] .theme-item.active{ /* tone+inset, БЕЗ drop (A45/A39); lit-edge .11 (НЕ .06 — Drive-число тоне на QR-dark) */
-  background:linear-gradient(180deg,color-mix(in srgb,var(--cap-bg) 88%,var(--accent)),var(--card));
-  border-color:color-mix(in srgb,var(--accent) 14%,transparent);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.11),inset 0 -1px 0 rgba(0,0,0,.2)}
-.chev-ico{color:var(--muted);flex-shrink:0}
-.timestamp{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
-.live-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex-shrink:0;animation:livePulse 2s ease-in-out infinite}
-@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
-/* BANNER */
-/* Batch 8h TAB2-AIR-TOP: padding-top збільшено з 6→8px для air між app-bar і ph-banner */
-#ph-banner{display:flex;align-items:center;gap:8px;padding:8px 12px 7px;background:var(--band);box-shadow:var(--band-sh);border-bottom:1px solid var(--border);border-left:4px solid var(--accent);flex-shrink:0}/* Batch 25.2: band Lift/Well через --band; rail 3→4px (секція B) */
-.ph-b-ico{color:var(--accent);flex-shrink:0;display:flex;align-items:center}
-.ph-b-body{flex:1;min-width:0}
-.ph-b-addr{font-size:12px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ph-b-meta{font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ph-b-x{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--ink-2);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:none;flex-shrink:0}
-/* SCREENS */
-.screens{flex:1;overflow:hidden;position:relative}
-.screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
-.screen.active{display:flex}
-.scroll-a{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
-/* NAV */
-/* Batch 8h BOTTOM-NAV-REBALANCE: повернуто KPI Lens patten — justify-center + symmetric padding.
-   Скасовує 8e TAB-BAR-COMPACT (flex-end + малий padding), що в PWA mode давало надмірну порожнечу між іконками і home indicator. */
-.bottom-nav{position:relative;display:flex;background:var(--card);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:8px} /* B26: position:relative — якір абс-капсули .tb-cap (A56) */
-@media(display-mode:standalone){.bottom-nav{padding-bottom:0}}
-html.pwa-full .nav-i{padding-top:8px;padding-bottom:calc(8px + var(--sab))}
-.nav-i{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;border-radius:12px;color:var(--muted);font-size:10px;font-weight:600;position:relative;z-index:1;transition:color .15s,transform .12s;cursor:pointer;-webkit-tap-highlight-color:transparent} /* B26: gap 2→3, z:1 над капсулою, press=scale (A56) */
-.nav-i:active{transform:scale(.96)} /* B26: A56 press — без bg поверх teal-капсули (--bg-soft токен недоторканий) */
-.nav-i svg{width:22px;height:22px;transition:stroke .15s} /* B26: 20→22 (A56) */
-.nav-i.act{color:var(--accent-text)} /* B26: --accent (обидві теми, без G1-сплиту — QR простіший за Drive) */
-/* B26 (A56): анімована капсула активного табу — slide на тап, snap на лейаут */
-.tb-cap{position:absolute;left:0;top:0;border-radius:14px;z-index:0;opacity:0;pointer-events:none;
-  background:var(--cap-bg);
-  box-shadow:0 1px 2px rgba(20,40,35,.14),0 2px 6px rgba(20,40,35,.09),0 6px 14px rgba(20,40,35,.07),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1.5px 1px rgba(20,40,35,.06);
-  border:1px solid color-mix(in srgb,var(--accent) 16%,transparent);
-  transition:transform var(--nav-dur) var(--nav-ease),width var(--nav-dur) var(--nav-ease),height var(--nav-dur) var(--nav-ease)}
-.tb-cap.cap-no-anim{transition:none} /* снап на init/resize/reflow/тему */
-[data-theme="dark"] .tb-cap{border:none; /* темна: inset-рім замість бордера, обʼєм тоном (A45); lit-edge .14 — A56, валідовано glass-sanity */
-  box-shadow:0 1px 2px rgba(0,0,0,.3),0 4px 12px rgba(0,0,0,.2),0 8px 20px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.18),inset 0 0 0 1px color-mix(in srgb,var(--accent) 16%,transparent)}
-@media(prefers-reduced-motion:reduce){.tb-cap{transition:none}}
-/* UTILS */
-.sec-t{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-.h16{height:16px}
-/* Batch 14 EMPTY-STATE-V2: vertical centering (justify-content+min-height) + збільшені пропорції — уніфіковано на Tab 1/3/4, PWA/Safari */
-.empty-state{padding:24px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:55dvh}
-.empty-ico{width:76px;height:76px;background:var(--bg-soft);border-radius:50%;display:flex;align-items:center;justify-content:center}
-.empty-txt{font-size:15px;font-weight:600;color:var(--muted)}
-.empty-hint{font-size:13px;color:var(--muted-2);line-height:1.55}
-.goto-btn{padding:10px 24px;background:var(--accent);color:#fff;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;border:none}
-/* CONTEXTUAL LAYER */
-.ctx-layer{display:flex;align-items:center;gap:8px;padding:7px 16px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;min-height:34px}
-.cl-main{font-size:12px;font-weight:700;color:var(--ink-2)}
-.cl-sub{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cl-sep{font-size:11px;color:var(--muted);margin:0 2px}
-.cl-dots{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
-.cl-st{display:flex;align-items:center;gap:3px;font-size:11px;font-weight:700}
-.cl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}
-/* Batch 8d TAB4-OUTLET-FUSE: візуально склеюємо ph-banner і ctx-layer на Tab 4 з outlet */
-body.tab4-fused #ph-banner{border-bottom:none}
-body.tab4-fused #ctx-layer{background:var(--bg-soft);border-top:1px dashed var(--border);padding-left:32px}
-/* Batch 9 EQ-CARD-V2: compact ~75-80px, 2-row horizontal (top: name+count+chev; bot: bar+dots+meta) */
-.eq-cards{display:flex;flex-direction:column;gap:8px;padding:10px 16px}
-.eq-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:9px 12px;box-shadow:var(--sh1);cursor:pointer;transition:border-color .12s,background .12s;position:relative;overflow:hidden}
-.eq-card:active{background:var(--card-2);border-color:var(--border-2)}
-.eq-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
-.eq-card-name{font-size:13px;font-weight:700;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.eq-card-right{display:flex;align-items:baseline;gap:3px;flex-shrink:0}
-.eq-card-cnt{font-size:22px;font-weight:800;color:var(--ink);line-height:1;letter-spacing:-1px}
-.eq-card-unit{font-size:10px;color:var(--muted);font-weight:600}
-.eq-card-chev{color:var(--muted-2);flex-shrink:0;margin-left:2px;align-self:center}
-.eq-card-bot{display:flex;align-items:center;gap:10px}
-.eq-card-bot .mini-bar{flex:1;max-width:none;margin:0;min-width:60px}
-.eq-card-dots{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.eq-card-meta{font-size:10px;color:var(--muted);flex-shrink:0;white-space:nowrap;font-weight:600}
-/* Batch 10 EQ-QR-META: monospace style для QR ID 8chars в outlet expand mode */
-.eq-card-meta-qr{font-family:monospace;letter-spacing:.5px;font-size:10px}
-.eq-dot-it{display:flex;align-items:center;gap:3px;font-size:11px;font-weight:700}
-/* Batch 9 EQ-WORST-TINT: background gradient за найгіршим статусом (light overlay 4-6%) */
-.eq-card[data-worst="crit"]{background:linear-gradient(180deg,color-mix(in srgb,var(--crit) 3%,var(--card)) 0%,color-mix(in srgb,var(--crit) 8%,var(--card)) 100%)}
-.eq-card[data-worst="late"]{background:linear-gradient(180deg,color-mix(in srgb,var(--late) 2%,var(--card)) 0%,color-mix(in srgb,var(--late) 7%,var(--card)) 100%)}
-.eq-card[data-worst="warn"]{background:linear-gradient(180deg,color-mix(in srgb,var(--warn) 2%,var(--card)) 0%,color-mix(in srgb,var(--warn) 7%,var(--card)) 100%)}/* Batch 25.2 C2: світла warm top+bottom (по всій картці, дзеркало dark). Bare=світла за конвенцією; dark нижче не чіпано. */
-/* Batch 25.1 #2 WARM-TINT (dark-only): +Lift card(#232a35) холодніша/світліша гасила теплий overlay (Вебер+hue-cancel). % перетюнено + тинт по ВСІЙ картці (top%+bottom%), не лише знизу. crit10/late8/warn8, top3. Світла база locked. A8: дуальний селектор > бази (0,2,0). */
-[data-theme="dark"] .eq-card[data-worst="crit"],:root:not([data-theme="light"]) .eq-card[data-worst="crit"]{background:linear-gradient(180deg,color-mix(in srgb,var(--crit) 3%,var(--card)) 0%,color-mix(in srgb,var(--crit) 10%,var(--card)) 100%)}
-[data-theme="dark"] .eq-card[data-worst="late"],:root:not([data-theme="light"]) .eq-card[data-worst="late"]{background:linear-gradient(180deg,color-mix(in srgb,var(--late) 3%,var(--card)) 0%,color-mix(in srgb,var(--late) 8%,var(--card)) 100%)}
-[data-theme="dark"] .eq-card[data-worst="warn"],:root:not([data-theme="light"]) .eq-card[data-worst="warn"]{background:linear-gradient(180deg,color-mix(in srgb,var(--warn) 3%,var(--card)) 0%,color-mix(in srgb,var(--warn) 8%,var(--card)) 100%)}
-/* "ok" — plain var(--card), без override */
-/* Batch 9.1 EQ-DOTS-COMPACT: при 3-4 status dots — менші font/gap щоб все вмістилось в один рядок */
-.eq-card[data-dots="3"] .eq-card-bot,
-.eq-card[data-dots="4"] .eq-card-bot{gap:7px}
-.eq-card[data-dots="3"] .eq-card-dots,
-.eq-card[data-dots="4"] .eq-card-dots{gap:6px}
-.eq-card[data-dots="3"] .eq-dot-it,
-.eq-card[data-dots="4"] .eq-dot-it{font-size:10px;gap:2px}
-.eq-card[data-dots="4"] .eq-card-meta{font-size:9.5px}
-/* Batch 9.2: .eq-item CSS видалено — outlet mode тепер використовує ту саму .eq-card v2 */
-/* PH CARD dots */
-.ph-card-dots{display:flex;align-items:center;gap:10px;margin-top:7px}
-.ph-dot-it{display:flex;align-items:center;gap:3px;font-size:11px;font-weight:700}
-.ph-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-/* GUID styled container */
-.guid-box{display:flex;align-items:center;gap:8px;background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--rxs);padding:5px 10px;width:100%;max-width:300px}
-/* Batch 8i GUID-TYPOGRAPHY: font 9→12px + letter-spacing 0.5px (текст займав ~30% висоти контейнера — диспропорція; padding не чіпаємо) */
-.guid-text{font-size:10px;letter-spacing:0.3px;color:var(--muted);font-family:monospace;word-break:break-all;line-height:1.5;flex:1;text-align:center}
-/* QR count badge */
-.qr-count-badge{background:var(--bg-soft);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--muted)}
-/* MINI BAR */
-.mini-bar{display:flex;height:4px;border-radius:2px;overflow:hidden;gap:0;min-width:56px}
-.mb-ok{background:var(--ok)}.mb-warn{background:var(--warn)}.mb-late{background:var(--late)}.mb-crit{background:var(--crit)}
-/* OVERVIEW */
-.ov-sr-name{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:12px;color:var(--ink)}
-.prog-block{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;box-shadow:var(--sh1)}
-.prog-label{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600}
-.prog-bar-wrap{height:8px;border-radius:4px;overflow:hidden;display:flex;margin-bottom:8px}
-.prog-legend{display:flex;gap:10px;flex-wrap:wrap}
-.pl-it{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--ink-2)}
-.pl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.ov-tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
-.ov-tile-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:5px}
-.ov-tile-val{font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-1px}
-.prob-list{display:flex;flex-direction:column;gap:6px;margin-bottom:4px}
-.prob-row{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:9px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:var(--sh1);transition:border-color .12s,background .12s}
-.prob-row:active{background:var(--card-2);border-color:var(--border-2)}
-/* Batch 13 PROB-NUM-NEUTRAL: дефолтний нейтральний (як .ph-rank) — узгодженість Tab 1 і Tab 2 ranking номерів */
-.prob-num{width:22px;height:22px;border-radius:50%;background:var(--bg-soft);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
-.prob-info{flex:1;min-width:0}
-.prob-addr{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.prob-meta{font-size:10px;color:var(--muted);margin-top:2px}
-.prob-cnt{font-size:12px;font-weight:700;flex-shrink:0}
-/* Batch 16 TAB1-PAIR-A-ASYMMETRY: Top-card units block (icon+number) */
-/* Batch 16.1 HOTFIX: typography parity з Tab 2/4 (color ink, font 15px) — icon decorator залишається */
-.card-units{display:flex;align-items:center;gap:5px;flex-shrink:0;color:var(--ink);font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
-.card-units svg{opacity:.55}
-/* ============ Batch 15 TAB1-CHIP-PAIR ============ */
-.chip-pair{display:flex;gap:8px;margin-bottom:10px}
-.chip-pair-it{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border-radius:var(--rs);border:1px solid var(--border);background:var(--card);color:var(--ink-2);font-size:12px;font-weight:700;cursor:pointer;transition:all .12s;box-shadow:var(--sh1)}
-.chip-pair-it:active{background:var(--bg-soft)}
-.chip-pair-it.act{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
-.chip-pair-it .cp-ico{display:flex;align-items:center}
-.chip-pair-it .cp-cnt{font-size:13px;font-weight:800;opacity:1;margin-left:5px;color:inherit;font-variant-numeric:tabular-nums}
-/* ============ Batch 15 TAB1-OUTLET-CTA ============ */
-.cta-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:13px 14px;border-radius:var(--rs);border:1px solid var(--border);background:var(--card);color:var(--ink);font-size:13px;font-weight:700;cursor:pointer;transition:all .12s;box-shadow:var(--sh1);margin-bottom:10px;font-family:inherit}
-.cta-btn:active{background:var(--card-2);border-color:var(--border-2)}
-.cta-btn.crit{background:var(--crit-soft);border-color:var(--crit)}
-.cta-btn.late{background:var(--late-soft);border-color:var(--late)}
-.cta-btn.warn{background:var(--warn-soft);border-color:var(--warn)}
-.cta-btn-l{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
-.cta-btn-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.cta-btn-dot.crit{background:var(--crit)}
-.cta-btn-dot.late{background:var(--late)}
-.cta-btn-dot.warn{background:var(--warn)}
-.cta-btn-dot.neutral{background:var(--muted)}
-.cta-btn-txt{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cta-btn-cnt{font-weight:800;opacity:.85;flex-shrink:0}
-/* ============ Batch 15 TAB1-OK-BADGE ============ */
-.ok-badge{display:flex;justify-content:center;padding:12px 0 14px;margin-bottom:0}
-.ok-badge-it{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;background:var(--ok-soft);color:var(--ok);border-radius:999px;font-size:13px;font-weight:700}
-.ok-badge-dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
-/* PHARMACIES */
-/* Batch 8g TAB2-FILTER-NO-BG: прибрано background:card (була "плитка" з app-bar look). Filter-row тепер лежить на загальному bg без власної карти */
-.filter-row{display:flex;gap:8px;padding:14px 16px 4px;background:transparent;flex-shrink:0;align-items:center}/* Batch 25.2 Fix1: симетричні зовнішні зазори ~14/14 (низ 4 + список padding-top 10 = 14; згори 14). Повітря над рядом тепер у padding-top. */
-/* Batch 25.2 Fix1: видалено no-banner margin-top:4px (колишні 8i/9) — повітря над рядом тепер у симетричному padding-top:14 .filter-row вище; +4 давало 18/14. (.has-banner-тогл у JS лишається безшкідливим.) */
+[data-theme="dark"]  .th-svg .th-sun{opacity:0}
+[data-theme="dark"]  .th-svg .th-moon{opacity:1}
+/* ③ ПОЛИШ: scale+rotate-морф — помітніший (scale .3 / rotate 120) */
+body.polish .th-svg .th-sun,body.polish .th-svg .th-moon{transition:opacity .2s ease,transform .34s cubic-bezier(.34,1.3,.64,1)}
+body.polish [data-theme="light"] .th-svg .th-sun{transform:scale(1) rotate(0)}
+body.polish [data-theme="light"] .th-svg .th-moon{transform:scale(.3) rotate(120deg)}
+body.polish [data-theme="dark"]  .th-svg .th-sun{transform:scale(.3) rotate(-120deg)}
+body.polish [data-theme="dark"]  .th-svg .th-moon{transform:scale(1) rotate(0)}
+
+/* ===== Tab-4 REFERENCE ===== */
+.t4{background:var(--bg);padding:12px 16px;display:flex;gap:8px;align-items:center;transition:background .2s}
 .ph-srch{flex:1;display:flex;align-items:center;gap:6px;background:var(--band);box-shadow:var(--band-sh);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px}
-.ph-srch input{flex:1;background:none;border:none;outline:none;color:var(--ink)}
-.ph-srch input::-webkit-search-cancel-button{display:none;-webkit-appearance:none}/* глушимо нативний хрест type=search (Chrome ПК) — лишаємо власний .srch-clr; патерн Drive Lens .sr-inp */
+.ph-srch input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-size:16px;min-width:0}
 .ph-srch input::placeholder{color:var(--muted)}
-/* Search × (clear) — патерн Drive Lens (родоначальник): flex-sibling + hidden + A36 guard */
-.srch-clr{flex-shrink:0;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--border);color:var(--ink-2);cursor:pointer;border:none}
-.srch-clr[hidden]{display:none}/* A36: .srch-clr має display:flex → рівна специфічність з UA [hidden] → підняти під клас */
-.srch-clr svg{width:13px;height:13px}
-.srch-clr:active{background:var(--border-2)}
-.flt-btn{display:flex;align-items:center;gap:5px;padding:8px 12px;background:var(--band);box-shadow:var(--band-sh);border:1px solid var(--border);border-radius:var(--rs);color:var(--ink-2);font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;transition:all .12s;flex-shrink:0}
-.flt-btn:active{background:var(--border)}
-.flt-btn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
-/* Batch 11 EQ-FILTER-SUMMARY: лічильник результатів фільтра в Tab 4 cross-SR */
-/* Batch 12 EQ-FS-V2: + border-left accent + accent-кольорові числа через .eq-fs-n */
-.eq-filter-summary{margin:0 16px;padding:2px 0 6px 10px;border-left:2px solid var(--accent);font-size:11px;color:var(--muted);font-weight:600;display:none}
-.eq-filter-summary.on{display:block}
-.eq-fs-n{color:var(--accent);font-weight:700}
-.ctx-strip{display:flex;align-items:center;padding:5px 16px;background:var(--bg-soft);border-bottom:1px solid var(--border);flex-shrink:0}
-.ctx-t{font-size:11px;color:var(--muted);flex:1}
-.ctx-c{font-size:11px;font-weight:700;color:var(--accent)}
-.ph-list{display:flex;flex-direction:column;gap:6px;padding:10px 16px}
-.ph-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh1);cursor:pointer;transition:border-color .12s,background .12s}
-.ph-card:active{background:var(--card-2);border-color:var(--border-2)}
-.ph-card.sel{border:1.5px solid var(--accent);background:var(--bg-soft)}
-/* Batch 25.1 #1 SEL-WELL (dark-only): після +Lift --bg-soft(#11161e)≈--bg(#0a0e14) → обрана тонула, тримала лише рамка. Well пересаджено вище фону (−7.8 card / +10.6 bg), характер узгоджено зі світлою (там обрана теж втоплена). Світла B locked. A8: дуальний селектор > бази (0,2,0). */
-[data-theme="dark"] .ph-card.sel,:root:not([data-theme="light"]) .ph-card.sel{background:#1a212c}
-.ph-card-l{flex-shrink:0;display:flex;flex-direction:column;gap:5px}
-.ph-card-i{flex:1;min-width:0}
-.ph-card-addr{font-size:13px;font-weight:700;color:var(--ink);line-height:1.3;word-break:break-word}
-.ph-card-meta{font-size:11px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ph-card-r{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:50px}
-.ph-card-rtop{display:flex;align-items:baseline;gap:3px}
-.ph-card-cnt{font-size:15px;font-weight:800;color:var(--ink);line-height:1}
-.ph-card-unit{font-size:10px;color:var(--muted)}
-/* Batch 8g TAB2-CARD-COMPACT: dots переміщено в right column поряд з cnt — картка стиснута ~46% */
-.ph-card-dots-r{display:flex;gap:6px;align-items:center;margin-top:2px}
-/* Batch 8h TAB2-CARD-RANK: нумерація карток (порт .tt-rank з KPI Lens) — кругла 22×22 плашка з номером, при isSel — accent background + #fff */
-.ph-rank{width:22px;height:22px;border-radius:50%;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--muted);flex-shrink:0;transition:background .12s,color .12s}
-.ph-card.sel .ph-rank{background:var(--accent);color:#fff}
-/* QR SCREEN */
-.qr-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-/* Batch 8i QR-AREA-DISTRIBUTE: center → space-between (name до верху, guid-box до низу, QR+badge+counter+dots розподілені посередині). padding-top 12→8 (менше повітря до ph-banner). */
-.qr-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 20px 12px;gap:8px;position:relative;overflow:hidden;touch-action:pan-y}
-.qr-pos-name{font-size:18px;font-weight:800;text-align:center;letter-spacing:-.3px;color:var(--ink);max-width:280px;word-break:break-word}
-.qr-wrap{background:#fff;border-radius:16px;padding:14px;box-shadow:0 0 0 1px var(--accent-border),var(--sh2)}
-.qr-wrap canvas,.qr-wrap img{display:block}
-.qr-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
-.qr-badge.ok{background:var(--ok-soft);color:var(--ok)}
-.qr-badge.warn{background:var(--warn-soft);color:var(--warn)}
-.qr-badge.late{background:var(--late-soft);color:var(--late)}
-.qr-badge.crit{background:var(--crit-soft);color:var(--crit)}
-.qr-counter{font-size:12px;font-weight:600;color:var(--muted)}
-.qr-dots{display:flex;gap:5px;align-items:center;justify-content:center}
-.qr-dot{width:6px;height:6px;border-radius:50%;background:var(--border-2);transition:all .2s}
-.qr-dot.act{background:var(--accent);width:16px;border-radius:3px}
-.qr-guid-row{display:flex;align-items:center;gap:6px;max-width:300px}
-.qr-guid{font-size:10px;color:var(--muted);font-family:monospace;word-break:break-all;line-height:1.5;flex:1;text-align:center}
-.copy-btn{width:28px;height:28px;background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--rxs);display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;flex-shrink:0;transition:background .12s}
-.copy-btn:active{background:var(--border)}
-.qr-hint{font-size:11px;color:var(--muted-2);text-align:center}
-/* Batch 8g QR-NAV-REDESIGN: чистіший дизайн стрілок — без кола, м'який скругл, tap state з teal accent */
-.qr-row{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;pointer-events:auto}
-.qr-nav{display:flex;align-items:center;justify-content:center;width:36px;height:44px;border-radius:14px;background:transparent;border:none;cursor:pointer;color:var(--ink-2);transition:background .15s,transform .12s,opacity .15s;pointer-events:auto;flex-shrink:0}
-.qr-nav:active{background:var(--accent-soft);transform:scale(.92);color:var(--accent)}
-.qr-nav:disabled{opacity:.2;cursor:default;pointer-events:none}
-.qr-chips{display:flex;gap:6px;padding:8px 16px 16px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;border-top:1px solid var(--border);background:var(--bg-soft);-webkit-mask-image:linear-gradient(to right,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%)}
-.qr-chips::-webkit-scrollbar{display:none}
-.qr-chip{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:11px;font-weight:600;white-space:nowrap;cursor:pointer;background:var(--card);color:var(--ink-2);flex-shrink:0;transition:all .12s;min-height:34px;display:inline-flex;align-items:center;gap:5px}
-.qr-chip.act{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);border-width:1.5px}
-/* Batch 8e QR-CHIP-ACTIVE-DARK: посилений контраст active capsule у dark theme (note 2.1) */
-[data-theme="dark"] .qr-chip.act,:root:not([data-theme="light"]) .qr-chip.act{background:rgba(42,140,132,.22);color:#7DDFD7;border-color:#3DA8A0;font-weight:700;box-shadow:0 0 0 1px rgba(125,223,215,.15)}
-.qr-chip.ok{border-color:var(--ok)}.qr-chip.warn{border-color:var(--warn)}
-.qr-chip.late{border-color:var(--late)}.qr-chip.crit{border-color:var(--crit)}
-/* Batch 8h TAB3-VIEWPORT-FIT: при tight viewport (Safari toolbar активний, vh<720) зменшуємо розміри QR area щоб все вміщалось.
-   visualViewport API tracking через JS додає body.tight-vh при необхідності. */
-/* Batch 8i: додано justify-content:flex-start (override проти нового space-between default); guid-text 9→10 (узгоджено з новим базовим 12) */
-body.tight-vh .qr-area{justify-content:flex-start;padding:8px 20px;gap:4px}
-body.tight-vh .qr-pos-name{font-size:15px}
-body.tight-vh .qr-wrap{padding:10px}
-body.tight-vh .qr-wrap canvas,body.tight-vh .qr-wrap img{width:200px!important;height:200px!important}
-body.tight-vh .qr-badge{padding:3px 8px;font-size:10px}
-body.tight-vh .qr-count-badge{font-size:10px;padding:2px 8px}
-/* Batch 20 GUID-FIX: tight-vh .guid-text override removed — base now 10px/0.3 letter-spacing always */
-/* Batch 8i PWA-ROOMY-VH: при vh>790 (PWA + Safari toolbar OFF на iPhone 13/14/15 Pro+) — luxury режим з QR 260×260, name 20px, gap 12px. */
-body.roomy-vh .qr-wrap canvas,body.roomy-vh .qr-wrap img{width:260px!important;height:260px!important}
-body.roomy-vh .qr-wrap{padding:16px}
-body.roomy-vh .qr-pos-name{font-size:20px}
-body.roomy-vh .qr-area{gap:12px}
-/* EQUIPMENT */
-.eq-sum{display:flex;gap:20px;padding:10px 16px;background:var(--bg-soft);border-bottom:1px solid var(--border);flex-shrink:0}
-.eq-sum-it{display:flex;flex-direction:column;gap:1px}
-.eq-sum-v{font-size:16px;font-weight:800;color:var(--ink)}
-.eq-sum-l{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.eq-list-w{display:flex;flex-direction:column}
-.eq-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;background:var(--card);transition:background .12s}
-.eq-row:active{background:var(--bg-soft)}
-.eq-info{flex:1;min-width:0}
-.eq-name{font-size:13px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.eq-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.eq-total{font-size:16px;font-weight:800;color:var(--ink);flex-shrink:0}
-.eq-chev{color:var(--muted-2);flex-shrink:0}
-/* SHEETS */
-/* A18 enter/exit: visibility/opacity/transform (не display:none↔flex). pointer-events:none на закритому (завжди flex); delayed visibility лишає видимим весь слайд; без will-change. Свайп-закриття end-only (передумова безпеки). */
-.sh-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:flex-end;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .24s ease,visibility 0s linear .26s}
-.sh-bg.open{visibility:visible;opacity:1;pointer-events:auto;transition:opacity .24s ease,visibility 0s}
-.sh-box{background:var(--card);border-radius:16px 16px 0 0;width:100%;max-height:85dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -4px 20px rgba(0,0,0,.10);transform:translateY(100%);transition:transform .26s cubic-bezier(.32,.72,0,1)}
-.sh-bg.open .sh-box{transform:translateY(0)}
-@media(prefers-reduced-motion:reduce){.sh-bg,.sh-box{transition:none}}
-.sh-grip-w{padding:10px 0 4px;display:flex;justify-content:center;cursor:grab;flex-shrink:0}
-.sh-grip{width:36px;height:4px;background:var(--border-2);border-radius:2px}
-.sh-head{display:flex;justify-content:space-between;align-items:center;padding:0 16px 10px;border-bottom:1px solid var(--border)}
-.sh-title{font-size:15px;font-weight:700}
-.sh-x{width:28px;height:28px;border-radius:50%;background:var(--bg-soft);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--ink-2);cursor:pointer}
-.sh-sec{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:12px 16px 6px}
-.chip-row{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px}
-.chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:var(--card);color:var(--ink-2);transition:all .12s}
-.chip.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
-.sh-reset{display:block;width:calc(100% - 32px);margin:16px 16px 0;padding:11px;border-radius:var(--rs);border:1px solid var(--border);background:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer}
-.sh-reset:active{background:var(--bg-soft)}
-.sr-opt{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;color:var(--ink-2)}
-.sr-opt:last-child{border-bottom:none}
-.sr-opt:active{background:var(--bg-soft)}
-.sr-opt.sel{color:var(--accent)}
-.sr-av{width:32px;height:32px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--accent);flex-shrink:0}
-.sr-av.sel{background:var(--accent);color:#fff}
-.sr-opt-name{font-size:14px;font-weight:600;flex:1}
-/* Batch 9.1 EQ-DETAIL-CARDS: drill-down використовує ph-card (Tab 2 pattern), eq-det-row видалено */
-.sh-bg #sh-eq-list{background:var(--bg);padding:12px 16px 16px;display:flex;flex-direction:column;gap:8px}/* Batch 25.2 Fix2: втоплена поверхня під картками (Tab2-паритет — картка --card піднімається). Світла=--bg (grouped-grey). */
-[data-theme="dark"] .sh-bg #sh-eq-list,:root:not([data-theme="light"]) .sh-bg #sh-eq-list{background:var(--bg-soft)}/* темна: --bg-soft, НЕ --bg (повний фон зливався б із бекдропом=«діра»); картка попить +14.8. A39-спліт, A8: (1,2-3,0)>база(1,1,0). */
-/* Batch 9.2 EQ-DETAIL-TINT: ph-card у drill-down sheet отримують tint за статусом цього QR коду */
-#sh-eq-list .ph-card[data-worst="crit"]{background:linear-gradient(180deg,color-mix(in srgb,var(--crit) 3%,var(--card)) 0%,color-mix(in srgb,var(--crit) 8%,var(--card)) 100%)}
-#sh-eq-list .ph-card[data-worst="late"]{background:linear-gradient(180deg,color-mix(in srgb,var(--late) 2%,var(--card)) 0%,color-mix(in srgb,var(--late) 7%,var(--card)) 100%)}
-#sh-eq-list .ph-card[data-worst="warn"]{background:linear-gradient(180deg,color-mix(in srgb,var(--warn) 2%,var(--card)) 0%,color-mix(in srgb,var(--warn) 7%,var(--card)) 100%)}/* Batch 25.2 C2: шіт-паритет із .eq-card вище */
-/* Batch 25.1 #2 WARM-TINT (dark-only) — дзеркало eq-card для шіта. A8: дуальний селектор (1,3-4,0) > бази (1,2,0). */
-[data-theme="dark"] #sh-eq-list .ph-card[data-worst="crit"],:root:not([data-theme="light"]) #sh-eq-list .ph-card[data-worst="crit"]{background:linear-gradient(180deg,color-mix(in srgb,var(--crit) 3%,var(--card)) 0%,color-mix(in srgb,var(--crit) 10%,var(--card)) 100%)}
-[data-theme="dark"] #sh-eq-list .ph-card[data-worst="late"],:root:not([data-theme="light"]) #sh-eq-list .ph-card[data-worst="late"]{background:linear-gradient(180deg,color-mix(in srgb,var(--late) 3%,var(--card)) 0%,color-mix(in srgb,var(--late) 8%,var(--card)) 100%)}
-[data-theme="dark"] #sh-eq-list .ph-card[data-worst="warn"],:root:not([data-theme="light"]) #sh-eq-list .ph-card[data-worst="warn"]{background:linear-gradient(180deg,color-mix(in srgb,var(--warn) 3%,var(--card)) 0%,color-mix(in srgb,var(--warn) 8%,var(--card)) 100%)}
+.flt-btn{display:flex;align-items:center;gap:5px;padding:8px 12px;background:var(--band);box-shadow:var(--band-sh);border:1px solid var(--border);border-radius:var(--rs);color:var(--ink-2);font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;flex-shrink:0}
 
-/* PULSE BAR */
-/* ── PULSE BAR ── (removed in Batch 8b — see Roadmap principle: no duplicated context) */
-.pb-period{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--muted-2);flex-shrink:0;margin-left:auto;padding-left:8px}
-/* TILE SUB */
-.ov-tile{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:10px 10px;box-shadow:var(--sh1)}
-.ov-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-soft-2)}
-.ov-tile-sub{font-size:10px;color:var(--muted);margin-top:3px;font-weight:500}
-/* CHIP DOT (filter sheet, no emoji) */
-.chip-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;flex-shrink:0}
-/* Batch 9.2: .eq-item sub-label CSS видалено — outlet mode переїхав на .eq-card v2 */
-/* Batch 9: .eq-card mini-bar / chevron rules переїхали в EQ-CARD-V2 блок */
+/* ===== тіло-екран ===== */
+.scr{background:var(--card);border-radius:0 0 14px 14px;border:1px solid var(--border);border-top:none;overflow:hidden}
+.card{margin:12px 16px;padding:14px;background:var(--card-2);border:1px solid var(--border);border-radius:var(--r);transition:background .14s,border-color .14s}
+.card h4{font-size:13px;color:var(--ink);margin-bottom:6px}
+.card p{font-size:12px;color:var(--muted)}
+.fnav{display:flex;gap:4px;justify-content:space-around;padding:10px 8px;background:var(--card);border-top:1px solid var(--border);transition:background .15s,border-color .15s}
+.fnav span{font-size:10px;color:var(--muted);padding:6px 10px;border-radius:10px;transition:color .14s,background .14s}
+.fnav span.on{color:var(--accent-text);background:var(--cap-bg)}
 
-/* Batch 21 ORIENTATION-LOCK: iOS не дає реальний lock через manifest "orientation":"portrait" (ігнорується),
-   тож CSS overlay при landscape — стандарт преміум PWA коли native API недоступний.
-   max-width:900px виключає планшети-у-landscape (там layout природно адаптується). */
-@media (orientation:landscape) and (max-width:900px){
-  body{overflow:hidden}
-  #app{display:none !important}
-  body::before{
-    content:"";
-    position:fixed;inset:0;z-index:9999;
-    background:var(--bg);
-    display:flex;align-items:center;justify-content:center;
-  }
-  body::after{
-    content:"Поверніть телефон вертикально";
-    position:fixed;inset:0;z-index:10000;
-    display:flex;align-items:center;justify-content:center;
-    color:var(--ink);
-    font-size:17px;font-weight:600;text-align:center;
-    padding:32px;letter-spacing:-0.2px;line-height:1.4;
-    pointer-events:none;
-  }
+/* ===== RAIL ===== */
+.rail{display:flex;flex-direction:column;gap:10px}
+.spec{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;transition:background .2s,border-color .2s}
+.spec .lbl{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.3px}
+.spec .row{display:flex;align-items:center;gap:8px}
+
+/* ===== BOTTOM PANEL ===== */
+.panel{position:fixed;left:0;right:0;bottom:0;z-index:500;background:var(--card);border-top:1px solid var(--border);box-shadow:var(--sh2);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));transition:background .2s,border-color .2s}
+.panel .wrap{padding:0 2px}
+.pr{display:flex;align-items:center;gap:8px;margin:7px 0}
+.pr .k{font-size:10px;font-weight:800;letter-spacing:.3px;color:var(--muted);width:62px;flex-shrink:0;text-transform:uppercase}
+.seg{display:flex;gap:4px;flex:1;background:var(--bg-soft);border:1px solid var(--border);border-radius:9px;padding:3px}
+.seg button{flex:1;padding:6px 4px;border-radius:6px;font-size:11px;font-weight:700;color:var(--muted);transition:all .15s;line-height:1.1}
+.seg button.on{background:var(--accent);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+
+@media (prefers-reduced-motion:reduce){
+  .theme-menu,body.polish .theme-menu{animation:none}
+  body.press .sr-pill:active,body.press .icon-btn:active,.pl-scale:active{transform:none!important}
+  .th-svg .th-sun,.th-svg .th-moon,body.polish .th-svg .th-sun,body.polish .th-svg .th-moon{transition:opacity .12s}
 }
-
 </style>
 </head>
-<body>
-<div id="app">
-  <header class="app-bar">
-    <div class="bar-top">
-      <div class="brand">QR<em>·</em>Lens</div>
-      <button class="sr-pill" id="srBtn">
-        <div class="avatar" id="srAv">Б</div>
-        <span class="sr-nm" id="srNm">Бутуліна Владислава</span>
-        <svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <!-- Batch 24: Theme button + 3-state dropdown (auto/light/dark) -->
-      <div class="theme-wrap">
-        <button class="icon-btn" id="btnTheme" aria-label="Тема" aria-haspopup="true" aria-expanded="false">
-          <!-- Batch 8h THEME-TOGGLE-V2: SVG з обома paths (sun + moon), перемикання через CSS opacity transitions -->
-          <svg class="th-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <g class="th-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></g>
-            <g class="th-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></g>
-          </svg>
+<body class="press">
+<div class="wrap">
+  <div class="legend">
+    <b>QR Lens — Header Compare v2.</b> Тепер прес ① і морф ③ — В ОКРЕМІЙ Press Lab (без дропдауна).
+    Лочимо по черзі: <b>fill → прес → switch → ③</b>. V1 = поточна база (dark = half-fix #4).
+  </div>
+
+  <div class="sec-h">Живий хедер + екран</div>
+  <div class="scr">
+    <div class="app-bar" id="liveBar" data-fill="v2">
+      <div class="bar-top">
+        <div class="brand">QR<em>·</em>Lens</div>
+        <button class="sr-pill" id="srBtn">
+          <div class="avatar">Б</div><span class="sr-nm">Бутуліна Владислава</span>
+          <svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="theme-menu" id="themeMenu" role="menu" hidden>
-          <button class="theme-item" data-mode="light" role="menuitemradio">
-            <svg class="ti-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        <div class="theme-wrap">
+          <button class="icon-btn" id="btnTheme" aria-label="Тема" aria-haspopup="true" aria-expanded="false">
+            <svg class="th-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <g class="th-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></g>
+              <g class="th-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></g>
             </svg>
-            <span class="ti-label">Світла</span>
-            <svg class="ti-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </button>
-          <button class="theme-item" data-mode="dark" role="menuitemradio">
-            <svg class="ti-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-            </svg>
-            <span class="ti-label">Темна</span>
-            <svg class="ti-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </button>
-          <button class="theme-item" data-mode="auto" role="menuitemradio">
-            <svg class="ti-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"/><path d="M12 3 A9 9 0 0 1 12 21 Z" fill="currentColor" stroke="none"/>
-            </svg>
-            <span class="ti-label">Системна</span>
-            <svg class="ti-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="timestamp">
-      <span class="live-dot"></span>
-      <span>Оновлено: <span id="genT">—</span></span>
-    </div>
-  </header>
-  <div id="ph-banner" style="display:none"></div>
-  <div id="ctx-layer" class="ctx-layer"></div>
-  <div class="screens">
-
-    <!-- TAB 1: OVERVIEW -->
-    <div class="screen active" id="sc-overview">
-      <div class="scroll-a"><div id="ov-content" style="padding:12px 16px 0"></div></div>
-    </div>
-
-    <!-- TAB 2: PHARMACIES -->
-    <div class="screen" id="sc-pharmacies">
-      <!-- Batch 8f TAB2-FILTER-SCROLL: filter-row тепер всередині scroll-a — скролиться разом з картками (як у KPI Lens) -->
-      <div class="scroll-a">
-        <div class="filter-row">
-          <div class="ph-srch">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="search" id="ph-srch-inp" placeholder="Пошук аптеки або адреси…" autocomplete="off">
-            <button class="srch-clr" id="ph-srch-clr" type="button" aria-label="Очистити пошук" hidden>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
+          <div class="theme-menu" id="themeMenu" role="menu" hidden>
+            <button class="theme-item" data-mode="light" role="menuitemradio"><svg class="ti-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg><span class="ti-label">Світла</span><svg class="ti-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+            <button class="theme-item" data-mode="dark" role="menuitemradio"><svg class="ti-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><span class="ti-label">Темна</span><svg class="ti-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+            <button class="theme-item" data-mode="auto" role="menuitemradio"><svg class="ti-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3 A9 9 0 0 1 12 21 Z" fill="currentColor" stroke="none"/></svg><span class="ti-label">Системна</span><svg class="ti-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
           </div>
-          <button class="flt-btn" id="ph-flt-btn">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"/></svg>
-            Фільтри
-          </button>
         </div>
-        <div class="ph-list" id="ph-list"></div><div class="h16"></div>
       </div>
     </div>
+    <div class="t4">
+      <div class="ph-srch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="Пошук обладнання…" readonly></div>
+      <button class="flt-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Фільтри</button>
+    </div>
+    <div class="card"><h4>Аптека «Бажаємо здоровʼя» №12</h4><p>пр. Науки, 24 · 4 одиниці · 1 критична</p></div>
+    <div class="card"><h4>Аптека «Подорожник» №7</h4><p>вул. Сумська, 110 · 6 одиниць · усе ОК</p></div>
+    <div class="fnav"><span class="on">Огляд</span><span>Топ</span><span>Аптеки</span><span>Обладнання</span></div>
+  </div>
 
-    <!-- TAB 3: QR CODES -->
-    <div class="screen" id="sc-qr">
-      <div class="empty-state" id="qr-empty" style="display:none">
-        <div class="empty-ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h.01M14 17h3M17 14h.01M17 17h.01M20 14v3"/></svg></div>
-        <div class="empty-txt">Оберіть аптеку</div>
-        <div class="empty-hint">Перейдіть до вкладки Аптеки та оберіть аптеку зі списку</div>
-        <button class="goto-btn" onclick="setTab('pharmacies')">→ Перейти до Аптек</button>
-      </div>
-      <div class="qr-main" id="qr-main" style="display:none">
-        <div class="qr-area" id="qr-area"></div>
-        <div class="qr-chips" id="qr-chips-row"></div>
+  <div class="sec-h">① Press Lab — тисни Й ТРИМАЙ (без дропдауна)</div>
+  <div class="lab">
+    <div class="lab-row">
+      <span class="lbl">Перемикач теми (іконка-кнопка).<br>Зліва — поточний жорсткий bg-стрибок (блік). Справа — scale .96, без стрибка.</span>
+      <div class="lab-ctl">
+        <span class="lab-cell"><button class="icon-btn pl-blink"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button><span class="cap">Блік база</span></span>
+        <span class="lab-cell"><button class="icon-btn pl-scale"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button><span class="cap">Scale .96</span></span>
       </div>
     </div>
-
-    <!-- TAB 4: EQUIPMENT -->
-    <div class="screen" id="sc-equipment">
-      <!-- Batch 9 EQ-FILTER-ROW: search+filter в cross-SR overview mode -->
-      <div class="scroll-a">
-        <div class="filter-row" id="eq-filter-row">
-          <div class="ph-srch">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="search" id="eq-srch-inp" placeholder="Пошук обладнання…" autocomplete="off">
-            <button class="srch-clr" id="eq-srch-clr" type="button" aria-label="Очистити пошук" hidden>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-          <button class="flt-btn" id="eq-flt-btn">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"/></svg>
-            Фільтри
-          </button>
-        </div>
-        <!-- Batch 11 EQ-FILTER-SUMMARY: лічильник після пошуку/фільтра -->
-        <div class="eq-filter-summary" id="eq-filter-summary"></div>
-        <div id="eq-list"></div><div class="h16"></div>
+    <div class="lab-row">
+      <span class="lbl">Селектор представника.<br>Та сама пара: блік-стрибок vs scale-прес.</span>
+      <div class="lab-ctl">
+        <span class="lab-cell"><button class="sr-pill pl-blink pl-pill"><span class="avatar">Б</span><svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button><span class="cap">Блік база</span></span>
+        <span class="lab-cell"><button class="sr-pill pl-scale pl-pill"><span class="avatar">Б</span><svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button><span class="cap">Scale .96</span></span>
       </div>
     </div>
-
+    <div class="lab-row">
+      <span class="lbl">③ Іконка перемикача — морф спрацьовує на ЗМІНІ ТЕМИ, не на відкритті меню.<br>Тисни «Тема» знизу (Світла↔Темна) і дивись СЮДИ. Перемкни тумблер ③ для crossfade vs морф.</span>
+      <div class="lab-ctl">
+        <span class="morph-ic"><svg class="th-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g class="th-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></g><g class="th-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></g></svg></span>
+      </div>
+    </div>
   </div>
-  <nav class="bottom-nav" id="bnav">
-    <span class="tb-cap" aria-hidden="true"></span>
-    <button class="nav-i act" data-tab="overview">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-      <span>Огляд</span>
-    </button>
-    <button class="nav-i" data-tab="pharmacies">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
-      <span>Аптеки</span>
-    </button>
-    <button class="nav-i" data-tab="qr">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h.01M14 17h3M17 14h.01M17 17h.01M20 14v3"/></svg>
-      <span>QR-коди</span>
-    </button>
-    <button class="nav-i" data-tab="equipment">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      <span>Обладнання</span>
-    </button>
-  </nav>
-</div>
 
-<!-- SHEET: SR -->
-<div class="sh-bg" id="sh-sr">
-  <div class="sh-box">
-    <div class="sh-grip-w"><div class="sh-grip"></div></div>
-    <div class="sh-head"><span class="sh-title">Оберіть представника</span><button class="sh-x" onclick="closeSheet('sh-sr')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-    <div id="sh-sr-list"></div>
+  <div class="sec-h">Зразки fill поруч (статика — перемкни тему згори)</div>
+  <div class="rail">
+    <div class="spec" data-fill="v1"><div class="lbl">V1 · ПОТОЧНЕ (база, dark=half-fix #4)</div><div class="row">
+      <span class="sr-pill"><span class="avatar">Б</span><span class="sr-nm">Бутуліна В.</span><svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      <span class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+    </div></div>
+    <div class="spec" data-fill="v2"><div class="lbl">V2 · BAND-WELL (A51 / мова Tab-4) ★</div><div class="row">
+      <span class="sr-pill"><span class="avatar">Б</span><span class="sr-nm">Бутуліна В.</span><svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      <span class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+    </div></div>
+    <div class="spec" data-fill="v3"><div class="lbl">V3 · ЕЛЕВАЦІЯ + БОРДЕР</div><div class="row">
+      <span class="sr-pill"><span class="avatar">Б</span><span class="sr-nm">Бутуліна В.</span><svg class="chev-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      <span class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+    </div></div>
   </div>
 </div>
 
-<!-- SHEET: FILTER -->
-<div class="sh-bg" id="sh-flt">
-  <div class="sh-box">
-    <div class="sh-grip-w"><div class="sh-grip"></div></div>
-    <div class="sh-head"><span class="sh-title">Фільтр аптек</span><button class="sh-x" onclick="closeSheet('sh-flt')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-    <div class="sh-sec">Мережа</div><div class="chip-row" id="sh-flt-nets"></div>
-    <div class="sh-sec">Місто</div><div class="chip-row" id="sh-flt-cities"></div>
-    <div class="sh-sec">Статус</div><div class="chip-row" id="sh-flt-status"></div>
-    <button class="sh-reset" onclick="resetFlt()">Скинути фільтри</button>
-  </div>
-</div>
-
-<!-- SHEET: EQ DETAIL -->
-<div class="sh-bg" id="sh-eq">
-  <div class="sh-box">
-    <div class="sh-grip-w"><div class="sh-grip"></div></div>
-    <div class="sh-head"><span class="sh-title" id="sh-eq-title">Обладнання</span><button class="sh-x" onclick="closeSheet('sh-eq')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-    <div id="sh-eq-list"></div>
-  </div>
-</div>
-
-<!-- Batch 9 EQ-FLT-SHEET: фільтр обладнання -->
-<div class="sh-bg" id="sh-eq-flt">
-  <div class="sh-box">
-    <div class="sh-grip-w"><div class="sh-grip"></div></div>
-    <div class="sh-head"><span class="sh-title">Фільтр обладнання</span><button class="sh-x" onclick="closeSheet('sh-eq-flt')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-    <div class="sh-sec">Бренд</div><div class="chip-row" id="sh-eq-brands"></div>
-    <div class="sh-sec">Критичність</div><div class="chip-row" id="sh-eq-status"></div>
-    <button class="sh-reset" onclick="resetEqFlt()">Скинути фільтри</button>
-  </div>
-</div>
+<div class="panel"><div class="wrap">
+  <div class="pr"><span class="k">Тема</span><div class="seg" id="segTheme"><button data-v="light">Світла</button><button data-v="dark" class="on">Темна</button></div></div>
+  <div class="pr"><span class="k">Fill</span><div class="seg" id="segFill"><button data-v="v1">V1 база</button><button data-v="v2" class="on">V2 well ★</button><button data-v="v3">V3 елев.</button></div></div>
+  <div class="pr"><span class="k">Прес (хедер)</span><div class="seg" id="segPress"><button data-v="off">Блік</button><button data-v="on" class="on">Scale .96</button></div></div>
+  <div class="pr"><span class="k">Switch</span><div class="seg" id="segSwitch"><button data-v="stagger" class="on">Стейджер (база)</button><button data-v="snap">Снап (фікс②)</button></div></div>
+  <div class="pr"><span class="k">Моушн③</span><div class="seg" id="segMotion"><button data-v="base" class="on">Crossfade</button><button data-v="polish">Морф+пружина</button></div></div>
+</div></div>
 
 <script>
-const DATA = [{"n":"Бутуліна Владислава","t":25,"ok":20,"w":4,"l":0,"c":1,"o":[{"a":"м.Дніпро, вул.Арсенича, 10","net":"АНЦ","city":"Дніпро","ok":3,"w":1,"l":0,"c":0,"i":[{"pos":"StrepsilsTray5","qr":"{038F1989-81D6-4C86-9525-C82BA6391656}","st":"ok","d":"1–30"},{"pos":"DurexTray9","qr":"{7A4C9B22-92E7-5D97-A636-D93CB7402767}","st":"warn","d":"31–60"},{"pos":"NurofenTray5","qr":"{1C982D33-A0AC-4D85-9887-6AE362285E6F}","st":"ok","d":"1–30"},{"pos":"EvitestTrayNavi","qr":"{2B047E44-B1BD-4D96-AA98-7BF473396767}","st":"ok","d":"1–30"}]},{"a":"м.Дніпро, пр.Героїв, 3","net":"АНЦ","city":"Дніпро","ok":4,"w":1,"l":0,"c":0,"i":[{"pos":"DurexTray7","qr":"{3A158F55-C2CE-5EA7-BBB9-8CG584407878}","st":"ok","d":"1–30"},{"pos":"NurofenTray6","qr":"{4B269G66-D3DF-6FB8-CCC0-9DH695518989}","st":"warn","d":"31–60"},{"pos":"ANC tray","qr":"{5C370H77-E4EG-7GC9-DDD1-AEI706629090}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{6D481I88-F5FH-8HD0-EEE2-BFJ817730101}","st":"ok","d":"1–30"},{"pos":"EvitestTray6","qr":"{7E592J99-G6GI-9IE1-FFF3-CGK928841212}","st":"ok","d":"1–30"}]},{"a":"м.Верхівцеве, вул.Центральна, 63","net":"АНЦ","city":"Верхівцеве","ok":4,"w":1,"l":0,"c":1,"i":[{"pos":"DurexTray5","qr":"{8F603K00-H7HJ-0JF2-GGG4-DHI039952323}","st":"crit","d":"120+"},{"pos":"NurofenTray4","qr":"{9G714L11-I8IK-1KG3-HHH5-EIJ140063434}","st":"ok","d":"1–30"},{"pos":"EvitestTrayWaves3","qr":"{AG825M22-J9JL-2LH4-III6-FJK251174545}","st":"ok","d":"1–30"},{"pos":"EvitestTraySmall","qr":"{BH936N33-K0KM-3MI5-JJJ7-GKL362285656}","st":"warn","d":"31–60"},{"pos":"DurexTower","qr":"{CI047O44-L1LN-4NJ6-KKK8-HLM473396767}","st":"ok","d":"1–30"},{"pos":"NurofenTrayC&F4","qr":"{DJ158P55-M2MO-5OK7-LLL9-IMN584507878}","st":"ok","d":"1–30"}]},{"a":"м.Кам'янське, вул.Свободи, 22","net":"Ліки","city":"Кам'янське","ok":4,"w":1,"l":0,"c":0,"i":[{"pos":"DurexTray9","qr":"{EK269Q66-N3NP-6PL8-MMM0-JNO695618989}","st":"ok","d":"1–30"},{"pos":"NurofenTray5","qr":"{FL370R77-O4OQ-7QM9-NNN1-KOP806729090}","st":"warn","d":"31–60"},{"pos":"EvitestTraySmall","qr":"{GM481S88-P5PR-8RN0-OOO2-LPQ917830101}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{HN592T99-Q6QS-9SO1-PPP3-MQR028941212}","st":"ok","d":"1–30"},{"pos":"LBox","qr":"{IO603U00-R7RT-0TP2-QQQ4-NRS139052323}","st":"ok","d":"1–30"}]},{"a":"м.Дніпро, вул.Робоча, 15а","net":"Ліки","city":"Дніпро","ok":5,"w":0,"l":0,"c":0,"i":[{"pos":"DurexTrayHorizontal3","qr":"{JP714V11-S8SU-1UQ3-RRR5-OST240163434}","st":"ok","d":"1–30"},{"pos":"NurofenTrayHorizontal","qr":"{KQ825W22-T9TV-2VR4-SSS6-PTU351274545}","st":"ok","d":"1–30"},{"pos":"EvitestTrayNavi","qr":"{LR936X33-U0UW-3WS5-TTT7-QUV462385656}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{MS047Y44-V1VX-4XT6-UUU8-RVW573496767}","st":"ok","d":"1–30"},{"pos":"EvitestTrayWaves4","qr":"{NT158Z55-W2WY-5YU7-VVV9-SWX684507878}","st":"ok","d":"1–30"}]}]},{"n":"Дуднік Вікторія","t":28,"ok":20,"w":6,"l":2,"c":0,"o":[{"a":"м.Харків, вул.Науки, 5","net":"Аптека Доброго Дня","city":"Харків","ok":3,"w":2,"l":0,"c":0,"i":[{"pos":"StrepsilsTower","qr":"{AA001-BB01-CC01-DD01-EE0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTrayAnc","qr":"{AA002-BB02-CC02-DD02-EE0200000002}","st":"warn","d":"31–60"},{"pos":"EvitestTrayWaves4","qr":"{AA003-BB03-CC03-DD03-EE0300000003}","st":"warn","d":"31–60"},{"pos":"DurexTower","qr":"{AA004-BB04-CC04-DD04-EE0400000004}","st":"ok","d":"1–30"},{"pos":"LBoxMini","qr":"{AA005-BB05-CC05-DD05-EE0500000005}","st":"ok","d":"1–30"}]},{"a":"м.Харків, пр.Леніна, 14","net":"Аптека Доброго Дня","city":"Харків","ok":4,"w":0,"l":2,"c":0,"i":[{"pos":"DurexTray9","qr":"{BB001-CC01-DD01-EE01-FF0100000001}","st":"late","d":"61–120"},{"pos":"NurofenTray5","qr":"{BB002-CC02-DD02-EE02-FF0200000002}","st":"ok","d":"1–30"},{"pos":"EvitestTray5","qr":"{BB003-CC03-DD03-EE03-FF0300000003}","st":"late","d":"61–120"},{"pos":"DurexTower","qr":"{BB004-CC04-DD04-EE04-FF0400000004}","st":"ok","d":"1–30"},{"pos":"OtcKopiykaFrame","qr":"{BB005-CC05-DD05-EE05-FF0500000005}","st":"ok","d":"1–30"},{"pos":"NurofenTower","qr":"{BB006-CC06-DD06-EE06-FF0600000006}","st":"ok","d":"1–30"}]},{"a":"м.Полтава, вул.Фрунзе, 7","net":"Ліки","city":"Полтава","ok":6,"w":2,"l":0,"c":0,"i":[{"pos":"DurexDisplayTop6","qr":"{CC001-DD01-EE01-FF01-GG0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray5","qr":"{CC002-DD02-EE02-FF02-GG0200000002}","st":"warn","d":"31–60"},{"pos":"EvitestTrayNavi","qr":"{CC003-DD03-EE03-FF03-GG0300000003}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{CC004-DD04-EE04-FF04-GG0400000004}","st":"ok","d":"1–30"},{"pos":"ANC tray","qr":"{CC005-DD05-EE05-FF05-GG0500000005}","st":"warn","d":"31–60"},{"pos":"NurofenC&FDisplay3","qr":"{CC006-DD06-EE06-FF06-GG0600000006}","st":"ok","d":"1–30"},{"pos":"NurofenForChildrenTray7","qr":"{CC007-DD07-EE07-FF07-GG0700000007}","st":"ok","d":"1–30"},{"pos":"GavisconTray6","qr":"{CC008-DD08-EE08-FF08-GG0800000008}","st":"ok","d":"1–30"}]},{"a":"м.Полтава, вул.Жовтнева, 3","net":"Ліки","city":"Полтава","ok":4,"w":1,"l":0,"c":0,"i":[{"pos":"ContexTtray85cm","qr":"{DD001-EE01-FF01-GG01-HH0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray6","qr":"{DD002-EE02-FF02-GG02-HH0200000002}","st":"warn","d":"31–60"},{"pos":"EvitestTrayNavi","qr":"{DD003-EE03-FF03-GG03-HH0300000003}","st":"ok","d":"1–30"},{"pos":"EvitestTraySmall","qr":"{DD004-EE04-FF04-GG04-HH0400000004}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{DD005-EE05-FF05-GG05-HH0500000005}","st":"ok","d":"1–30"}]},{"a":"м.Харків, вул.Сумська, 21","net":"Аптека 911","city":"Харків","ok":3,"w":1,"l":0,"c":0,"i":[{"pos":"DurexTray9","qr":"{EE001-FF01-GG01-HH01-II0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray5","qr":"{EE002-FF02-GG02-HH02-II0200000002}","st":"ok","d":"1–30"},{"pos":"EvitestTrayWaves3","qr":"{EE003-FF03-GG03-HH03-II0300000003}","st":"warn","d":"31–60"},{"pos":"DurexTower","qr":"{EE004-FF04-GG04-HH04-II0400000004}","st":"ok","d":"1–30"}]}]},{"n":"Дяченко Наталія","t":22,"ok":18,"w":3,"l":0,"c":1,"o":[{"a":"м.Запоріжжя, пр.Соборний, 11","net":"АНЦ","city":"Запоріжжя","ok":4,"w":0,"l":0,"c":1,"i":[{"pos":"StrepsilsTray4","qr":"{FF001-GG01-HH01-II01-JJ0100000001}","st":"crit","d":"120+"},{"pos":"DurexTray9","qr":"{FF002-GG02-HH02-II02-JJ0200000002}","st":"ok","d":"1–30"},{"pos":"EvitestTraySmall","qr":"{FF003-GG03-HH03-II03-JJ0300000003}","st":"ok","d":"1–30"},{"pos":"LBox","qr":"{FF004-GG04-HH04-II04-JJ0400000004}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{FF005-GG05-HH05-II05-JJ0500000005}","st":"ok","d":"1–30"}]},{"a":"м.Запоріжжя, вул.Перемоги, 4","net":"АНЦ","city":"Запоріжжя","ok":5,"w":1,"l":0,"c":0,"i":[{"pos":"DurexTray7","qr":"{GG001-HH01-II01-JJ01-KK0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTrayHorizontal","qr":"{GG002-HH02-II02-JJ02-KK0200000002}","st":"warn","d":"31–60"},{"pos":"Evitest911TrayNavi7","qr":"{GG003-HH03-II03-JJ03-KK0300000003}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{GG004-HH04-II04-JJ04-KK0400000004}","st":"ok","d":"1–30"},{"pos":"EvitestTrayWaves4","qr":"{GG005-HH05-II05-JJ05-KK0500000005}","st":"ok","d":"1–30"},{"pos":"NurofenTower","qr":"{GG006-HH06-II06-JJ06-KK0600000006}","st":"ok","d":"1–30"}]},{"a":"м.Мелітополь, вул.Центральна, 2","net":"Ліки","city":"Мелітополь","ok":3,"w":2,"l":0,"c":0,"i":[{"pos":"DurexTray9","qr":"{HH001-II01-JJ01-KK01-LL0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray5","qr":"{HH002-II02-JJ02-KK02-LL0200000002}","st":"warn","d":"31–60"},{"pos":"EvitestTrayNavi","qr":"{HH003-II03-JJ03-KK03-LL0300000003}","st":"warn","d":"31–60"},{"pos":"LBoxMini","qr":"{HH004-II04-JJ04-KK04-LL0400000004}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{HH005-II05-JJ05-KK05-LL0500000005}","st":"ok","d":"1–30"}]},{"a":"м.Запоріжжя, бул.Шевченка, 8","net":"Аптека 911","city":"Запоріжжя","ok":4,"w":0,"l":0,"c":0,"i":[{"pos":"DurexTrayBrand9","qr":"{II001-JJ01-KK01-LL01-MM0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenOtcWowBox","qr":"{II002-JJ02-KK02-LL02-MM0200000002}","st":"ok","d":"1–30"},{"pos":"OtcKopiykaFrame","qr":"{II003-JJ03-KK03-LL03-MM0300000003}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{II004-JJ04-KK04-LL04-MM0400000004}","st":"ok","d":"1–30"}]},{"a":"м.Запоріжжя, вул.Гагаріна, 17","net":"Аптека 911","city":"Запоріжжя","ok":2,"w":0,"l":0,"c":0,"i":[{"pos":"DurexTrayHorizontal3","qr":"{JJ001-KK01-LL01-MM01-NN0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray5","qr":"{JJ002-KK02-LL02-MM02-NN0200000002}","st":"ok","d":"1–30"}]}]},{"n":"Константінов Андрій","t":35,"ok":21,"w":10,"l":3,"c":1,"o":[{"a":"м.Київ, вул.Хрещатик, 22","net":"АНЦ","city":"Київ","ok":2,"w":4,"l":0,"c":0,"i":[{"pos":"DurexTray9","qr":"{KK001-LL01-MM01-NN01-OO0100000001}","st":"warn","d":"31–60"},{"pos":"NurofenTray5","qr":"{KK002-LL02-MM02-NN02-OO0200000002}","st":"ok","d":"1–30"},{"pos":"EvitestTray6","qr":"{KK003-LL03-MM03-NN03-OO0300000003}","st":"warn","d":"31–60"},{"pos":"DurexTower","qr":"{KK004-LL04-MM04-NN04-OO0400000004}","st":"warn","d":"31–60"},{"pos":"ANC tray","qr":"{KK005-LL05-MM05-NN05-OO0500000005}","st":"ok","d":"1–30"},{"pos":"NurofenForChildrenTray10","qr":"{KK006-LL06-MM06-NN06-OO0600000006}","st":"warn","d":"31–60"}]},{"a":"м.Київ, пр.Перемоги, 5","net":"АНЦ","city":"Київ","ok":3,"w":2,"l":1,"c":0,"i":[{"pos":"DurexAncFmcg","qr":"{LL001-MM01-NN01-OO01-PP0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray4","qr":"{LL002-MM02-NN02-OO02-PP0200000002}","st":"late","d":"61–120"},{"pos":"EvitestTrayNavi","qr":"{LL003-MM03-NN03-OO03-PP0300000003}","st":"warn","d":"31–60"},{"pos":"DurexTower","qr":"{LL004-MM04-NN04-OO04-PP0400000004}","st":"ok","d":"1–30"},{"pos":"EvitestTraySmall","qr":"{LL005-MM05-NN05-OO05-PP0500000005}","st":"warn","d":"31–60"},{"pos":"NurofenTower","qr":"{LL006-MM06-NN06-OO06-PP0600000006}","st":"ok","d":"1–30"}]},{"a":"м.Київ, вул.Басейна, 1","net":"Аптека 911","city":"Київ","ok":4,"w":1,"l":0,"c":1,"i":[{"pos":"DurexDisplayTop6","qr":"{MM001-NN01-OO01-PP01-QQ0100000001}","st":"crit","d":"120+"},{"pos":"NurofenShelftalker","qr":"{MM002-NN02-OO02-PP02-QQ0200000002}","st":"ok","d":"1–30"},{"pos":"EvitestTraySmall","qr":"{MM003-NN03-OO03-PP03-QQ0300000003}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{MM004-NN04-OO04-PP04-QQ0400000004}","st":"warn","d":"31–60"},{"pos":"LBox","qr":"{MM005-NN05-OO05-PP05-QQ0500000005}","st":"ok","d":"1–30"},{"pos":"NurofenTower","qr":"{MM006-NN06-OO06-PP06-QQ0600000006}","st":"ok","d":"1–30"}]},{"a":"м.Бровари, пр.Незалежності, 3","net":"Ліки","city":"Бровари","ok":5,"w":1,"l":1,"c":0,"i":[{"pos":"DurexTray9","qr":"{NN001-OO01-PP01-QQ01-RR0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray5","qr":"{NN002-OO02-PP02-QQ02-RR0200000002}","st":"late","d":"61–120"},{"pos":"Evitest911TrayNavi7","qr":"{NN003-OO03-PP03-QQ03-RR0300000003}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{NN004-OO04-PP04-QQ04-RR0400000004}","st":"warn","d":"31–60"},{"pos":"EvitestTrayWaves4","qr":"{NN005-OO05-PP05-QQ05-RR0500000005}","st":"ok","d":"1–30"},{"pos":"NurofenTower","qr":"{NN006-OO06-PP06-QQ06-RR0600000006}","st":"ok","d":"1–30"},{"pos":"EvitestTray5","qr":"{NN007-OO07-PP07-QQ07-RR0700000007}","st":"ok","d":"1–30"}]},{"a":"м.Київ, вул.Антоновича, 12","net":"Аптека Доброго Дня","city":"Київ","ok":7,"w":2,"l":1,"c":0,"i":[{"pos":"DurexTrayBrand7","qr":"{OO001-PP01-QQ01-RR01-SS0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTrayAnc","qr":"{OO002-PP02-QQ02-RR02-SS0200000002}","st":"warn","d":"31–60"},{"pos":"EvitestTrayWaves4","qr":"{OO003-PP03-QQ03-RR03-SS0300000003}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{OO004-PP04-QQ04-RR04-SS0400000004}","st":"ok","d":"1–30"},{"pos":"NurofenC&FDisplay3","qr":"{OO005-PP05-QQ05-RR05-SS0500000005}","st":"ok","d":"1–30"},{"pos":"StrepsilsShelftalker","qr":"{OO006-PP06-QQ06-RR06-SS0600000006}","st":"ok","d":"1–30"},{"pos":"GavisconShelftalker","qr":"{OO007-PP07-QQ07-RR07-SS0700000007}","st":"warn","d":"31–60"},{"pos":"SolomialwDisplay7","qr":"{OO008-PP08-QQ08-RR08-SS0800000008}","st":"ok","d":"1–30"},{"pos":"VeetShelfTray6","qr":"{OO009-PP09-QQ09-RR09-SS0900000009}","st":"ok","d":"1–30"},{"pos":"Dettol display","qr":"{OO010-PP10-QQ10-RR10-SS1000000010}","st":"late","d":"61–120"}]},{"a":"м.Київ, вул.Лесі Українки, 26","net":"АНЦ","city":"Київ","ok":0,"w":0,"l":0,"c":0,"i":[]}]},{"n":"Мельник Дмитро","t":26,"ok":12,"w":11,"l":3,"c":0,"o":[{"a":"м.Львів, пл.Ринок, 1","net":"АНЦ","city":"Львів","ok":2,"w":4,"l":0,"c":0,"i":[{"pos":"DurexTray9","qr":"{PP001-QQ01-RR01-SS01-TT0100000001}","st":"warn","d":"31–60"},{"pos":"NurofenOtcWowBox","qr":"{PP002-QQ02-RR02-SS02-TT0200000002}","st":"ok","d":"1–30"},{"pos":"EvitestTrayNavi","qr":"{PP003-QQ03-RR03-SS03-TT0300000003}","st":"warn","d":"31–60"},{"pos":"DurexTower","qr":"{PP004-QQ04-RR04-SS04-TT0400000004}","st":"warn","d":"31–60"},{"pos":"LBoxMini","qr":"{PP005-QQ05-RR05-SS05-TT0500000005}","st":"ok","d":"1–30"},{"pos":"NurofenFrameC&F","qr":"{PP006-QQ06-RR06-SS06-TT0600000006}","st":"warn","d":"31–60"}]},{"a":"м.Львів, вул.Городоцька, 8","net":"АНЦ","city":"Львів","ok":1,"w":3,"l":2,"c":0,"i":[{"pos":"StrepsilsTrayAnc","qr":"{QQ001-RR01-SS01-TT01-UU0100000001}","st":"late","d":"61–120"},{"pos":"NurofenTray5","qr":"{QQ002-RR02-SS02-TT02-UU0200000002}","st":"warn","d":"31–60"},{"pos":"EvitestTrayNavi","qr":"{QQ003-RR03-SS03-TT03-UU0300000003}","st":"late","d":"61–120"},{"pos":"DurexTower","qr":"{QQ004-RR04-SS04-TT04-UU0400000004}","st":"warn","d":"31–60"},{"pos":"OtcKopiykaFrame","qr":"{QQ005-RR05-SS05-TT05-UU0500000005}","st":"warn","d":"31–60"},{"pos":"NurofenTower","qr":"{QQ006-RR06-SS06-TT06-UU0600000006}","st":"ok","d":"1–30"}]},{"a":"м.Дрогобич, вул.Шевченка, 5","net":"Ліки","city":"Дрогобич","ok":4,"w":2,"l":0,"c":0,"i":[{"pos":"DurexTray5","qr":"{RR001-SS01-TT01-UU01-VV0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray6","qr":"{RR002-SS02-TT02-UU02-VV0200000002}","st":"warn","d":"31–60"},{"pos":"EvitestTray6","qr":"{RR003-SS03-TT03-UU03-VV0300000003}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{RR004-SS04-TT04-UU04-VV0400000004}","st":"ok","d":"1–30"},{"pos":"ANC tray","qr":"{RR005-SS05-TT05-UU05-VV0500000005}","st":"warn","d":"31–60"},{"pos":"NurofenTower","qr":"{RR006-SS06-TT06-UU06-VV0600000006}","st":"ok","d":"1–30"}]},{"a":"м.Львів, вул.Зелена, 20","net":"Аптека 911","city":"Львів","ok":3,"w":1,"l":1,"c":0,"i":[{"pos":"DurexTrayBrand9","qr":"{SS001-TT01-UU01-VV01-WW0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray4","qr":"{SS002-TT02-UU02-VV02-WW0200000002}","st":"late","d":"61–120"},{"pos":"EvitestTrayWaves3","qr":"{SS003-TT03-UU03-VV03-WW0300000003}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{SS004-TT04-UU04-VV04-WW0400000004}","st":"warn","d":"31–60"},{"pos":"EvitestTraySmall","qr":"{SS005-TT05-UU05-VV05-WW0500000005}","st":"ok","d":"1–30"}]},{"a":"м.Трускавець, вул.Шептицького, 3","net":"Ліки","city":"Трускавець","ok":2,"w":1,"l":0,"c":0,"i":[{"pos":"DurexTray9","qr":"{TT001-UU01-VV01-WW01-XX0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray5","qr":"{TT002-UU02-VV02-WW02-XX0200000002}","st":"warn","d":"31–60"},{"pos":"EvitestTrayNavi","qr":"{TT003-UU03-VV03-WW03-XX0300000003}","st":"ok","d":"1–30"}]}]},{"n":"Серченко Ірина","t":25,"ok":17,"w":6,"l":1,"c":1,"o":[{"a":"м.Одеса, вул.Дерибасівська, 3","net":"АНЦ","city":"Одеса","ok":3,"w":1,"l":0,"c":1,"i":[{"pos":"StrepsilsTray6","qr":"{UU001-VV01-WW01-XX01-YY0100000001}","st":"crit","d":"120+"},{"pos":"NurofenTrayHorizontal","qr":"{UU002-VV02-WW02-XX02-YY0200000002}","st":"ok","d":"1–30"},{"pos":"Evitest911TrayNavi7","qr":"{UU003-VV03-WW03-XX03-YY0300000003}","st":"warn","d":"31–60"},{"pos":"DurexTower","qr":"{UU004-VV04-WW04-XX04-YY0400000004}","st":"ok","d":"1–30"},{"pos":"LBox","qr":"{UU005-VV05-WW05-XX05-YY0500000005}","st":"ok","d":"1–30"}]},{"a":"м.Одеса, пр.Шевченка, 11","net":"АНЦ","city":"Одеса","ok":4,"w":2,"l":0,"c":0,"i":[{"pos":"DurexAncFmcg","qr":"{VV001-WW01-XX01-YY01-ZZ0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTrayAnc","qr":"{VV002-WW02-XX02-YY02-ZZ0200000002}","st":"warn","d":"31–60"},{"pos":"EvitestTrayWaves4","qr":"{VV003-WW03-XX03-YY03-ZZ0300000003}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{VV004-WW04-XX04-YY04-ZZ0400000004}","st":"warn","d":"31–60"},{"pos":"EvitestTrayWaves4","qr":"{VV005-WW05-XX05-YY05-ZZ0500000005}","st":"ok","d":"1–30"},{"pos":"NurofenForChildrenShelftalker","qr":"{VV006-WW06-XX06-YY06-ZZ0600000006}","st":"ok","d":"1–30"}]},{"a":"м.Миколаїв, вул.Адміральська, 7","net":"Ліки","city":"Миколаїв","ok":4,"w":2,"l":0,"c":0,"i":[{"pos":"DurexTray9","qr":"{WW001-XX01-YY01-ZZ01-AA0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray5","qr":"{WW002-XX02-YY02-ZZ02-AA0200000002}","st":"warn","d":"31–60"},{"pos":"EvitestTray5","qr":"{WW003-XX03-YY03-ZZ03-AA0300000003}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{WW004-XX04-YY04-ZZ04-AA0400000004}","st":"ok","d":"1–30"},{"pos":"LBoxMini","qr":"{WW005-XX05-YY05-ZZ05-AA0500000005}","st":"warn","d":"31–60"},{"pos":"GavisconTray5","qr":"{WW006-XX06-YY06-ZZ06-AA0600000006}","st":"ok","d":"1–30"}]},{"a":"м.Одеса, вул.Ланжеронівська, 2","net":"Аптека Доброго Дня","city":"Одеса","ok":3,"w":1,"l":1,"c":0,"i":[{"pos":"ContexTtray85cm","qr":"{XX001-YY01-ZZ01-AA01-BB0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray5","qr":"{XX002-YY02-ZZ02-AA02-BB0200000002}","st":"late","d":"61–120"},{"pos":"EvitestTrayNavi","qr":"{XX003-YY03-ZZ03-AA03-BB0300000003}","st":"warn","d":"31–60"},{"pos":"DurexTower","qr":"{XX004-YY04-ZZ04-AA04-BB0400000004}","st":"ok","d":"1–30"},{"pos":"OtcKopiykaFrame","qr":"{XX005-YY05-ZZ05-AA05-BB0500000005}","st":"ok","d":"1–30"}]},{"a":"м.Херсон, вул.Декабристів, 4","net":"Аптека 911","city":"Херсон","ok":3,"w":0,"l":0,"c":0,"i":[{"pos":"DurexTrayBrand7","qr":"{YY001-ZZ01-AA01-BB01-CC0100000001}","st":"ok","d":"1–30"},{"pos":"NurofenTray6","qr":"{YY002-ZZ02-AA02-BB02-CC0200000002}","st":"ok","d":"1–30"},{"pos":"DurexTower","qr":"{YY003-ZZ03-AA03-BB03-CC0300000003}","st":"ok","d":"1–30"}]}]}]
+var $=function(id){return document.getElementById(id);};
+var html=document.documentElement, body=document.body, liveBar=$('liveBar');
+var S={theme:'dark',fill:'v2',press:'on',sw:'stagger',motion:'base'};
 
-const EXPORT_DATE = "26.05.2026";
-
-// CONSTANTS
-const SWIPE_MIN = 20;
-const SWIPE_TRIG = 50;
-
-// STATE
-const S = {
-  sr: 0,
-  outlet: null,
-  tab: 'overview',
-  carIdx: 0,
-  phSrch: '',
-  fNet: 'all',
-  fCity: 'all',
-  fSt: [],
-  // Batch 9 EQ-STATE: фільтри Tab 4 (Equipment)
-  eqSrch: '',
-  eqFBrand: 'all',
-  eqFSt: [],
-  // Batch 15 TAB1-MODE: режим SR list — 'top' (за обладнанням) | 'focus' (потребують уваги)
-  tab1Mode: 'top'
-  // Batch 9.1: eqFCat прибрано — категорія зайва, фільтр Бренд+Критичність достатній
-};
-
-function sr() { return DATA[S.sr]; }
-function out() { return S.outlet !== null ? sr().o[S.outlet] : null; }
-
-const ST_COL = {ok:'var(--ok)',warn:'var(--warn)',late:'var(--late)',crit:'var(--crit)'};
-const ST_LBL = {ok:'ОК',warn:'Перевірити',late:'Давно',crit:'Критично'};
-const ST_D   = {ok:'1–30 дн',warn:'31–60 дн',late:'61–120 дн',crit:'120+ дн'};
-
-function miniBar(ok,w,l,c){
-  const t=ok+w+l+c||1;
-  const p=n=>Math.round(n/t*100)+'%';
-  return `<div class="mini-bar">
-    ${ok?`<div class="mb-ok" style="width:${p(ok)}"></div>`:''}
-    ${w ?`<div class="mb-warn" style="width:${p(w)}"></div>`:''}
-    ${l ?`<div class="mb-late" style="width:${p(l)}"></div>`:''}
-    ${c ?`<div class="mb-crit" style="width:${p(c)}"></div>`:''}
-  </div>`;
+function applyState(){
+  body.classList.toggle('press', S.press==='on');
+  body.classList.toggle('polish', S.motion==='polish');
+  liveBar.setAttribute('data-fill', S.fill);
+  mark('segTheme',S.theme);mark('segFill',S.fill);mark('segPress',S.press);mark('segSwitch',S.sw);mark('segMotion',S.motion);
+  document.querySelectorAll('.theme-item').forEach(function(it){it.classList.toggle('active',it.dataset.mode===S.theme);});
 }
+function mark(seg,val){$(seg).querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===val);});}
 
-
-// ── HEADER ──
-function renderHeader(){
-  const nm=sr().n;
-  document.getElementById('srAv').textContent=nm.charAt(0);
-  document.getElementById('srNm').textContent=nm;
-  document.getElementById('genT').textContent = EXPORT_DATE;
-}
-
-// ── BANNER ──
-function renderBanner(){
-  const el=document.getElementById('ph-banner');
-  const o=out();
-  // Batch 8i TAB2-FILTER-AIR: body.has-banner стан для CSS-aware filter-row spacing
-  if(!o){el.style.display='none';document.body.classList.remove('has-banner');return;}
-  el.style.display='flex';
-  document.body.classList.add('has-banner');
-  el.innerHTML=`
-    <div class="ph-b-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-    <div class="ph-b-body">
-      <div class="ph-b-addr">${o.a}</div>
-      <div class="ph-b-meta">${o.net||''}${o.city?' · '+o.city:''} · ${o.i.length} одиниць</div>
-    </div>
-    <button class="ph-b-x" onclick="selectOutlet(null)">×</button>`;
-}
-
-// ── TAB 1: OVERVIEW ──
-function renderCtxLayer(){
-  const d=sr();const o=out();const t=d.t||1;
-  const el=document.getElementById('ctx-layer');
-  if(S.tab==='pharmacies'){el.style.display='none';return;} // no ctx-layer on Tab 2 — counter is in filter-row
-  el.style.display='';  // reset to CSS default each time
-  if(S.tab==='overview'){
-    // Batch 8d TAB1-STATUS-HIDE: ctx-layer на Tab 1 завжди прихований.
-    // Причина: показники "X/Y · Z%" повністю дублюються prog-block (з progress bar + legend) і hero-tiles.
-    // Status line не несе нової інформації — тільки забирає вертикальний простір.
-    el.style.display='none';return;
-  } else if(S.tab==='qr'){
-    if(o){
-      el.style.display='none';return;
-    } else {
-      el.style.display='';
-      el.innerHTML=`<span class="cl-sub">Оберіть аптеку для перегляду QR-кодів</span>`;
-    }
-  } else if(S.tab==='equipment'){
-    if(o){
-      // Batch 13 CTX-EMPTY-FIX: hide ctx-layer для empty outlet (раніше Math.round(0/0*100)="NaN%")
-      if(!o.i.length){el.style.display='none';return;}
-      const oi=o.i;const okC=oi.filter(x=>x.st==='ok').length,wC=oi.filter(x=>x.st==='warn').length,lC=oi.filter(x=>x.st==='late').length,cC=oi.filter(x=>x.st==='crit').length;
-      const pct=Math.round(okC/oi.length*100);
-      // Batch 8d TAB4-CTX-DEDUP: "N одиниць" вже в ph-banner — показуємо % сканування + dots (нова інфо для цієї аптеки)
-      el.innerHTML=`<span class="cl-main">${pct}% відскановано</span><div class="cl-dots">${dotRowCl(okC,wC,lC,cC)}</div>`;
-    } else {
-      const types=getEqTypes(d);const totU=types.reduce((s,t)=>s+t.tot,0);
-      const okC=types.reduce((s,t)=>s+t.ok,0),wC=types.reduce((s,t)=>s+t.w,0),lC=types.reduce((s,t)=>s+t.l,0),cC=types.reduce((s,t)=>s+t.c,0);
-      el.innerHTML=`<span class="cl-main">${types.length} типів · ${totU} одиниць</span><div class="cl-dots">${dotRowCl(okC,wC,lC,cC)}</div>`;
-    }
+function setTheme(t){
+  S.theme=t;
+  var meta=document.querySelector('meta[name="theme-color"]');
+  function paint(){
+    html.setAttribute('data-theme',t);
+    if(meta)meta.content=t==='dark'?'#0a0e14':'#eef3f2';
+    document.querySelectorAll('.theme-item').forEach(function(it){it.classList.toggle('active',it.dataset.mode===t);});
+    mark('segTheme',t);
   }
-  // Batch 8d TAB4-OUTLET-FUSE: візуальне склеювання ph-banner + ctx-layer на Tab 4 з outlet
-  // Batch 13: + умова o.i.length>0 — не fuse якщо empty outlet (ctx-layer прихований у КРОЦІ 4)
-  document.body.classList.toggle('tab4-fused', S.tab==='equipment' && !!o && o.i.length>0);
-}
-function renderOverview(){
-  const d=sr();
-  const o=out();
-  const ovEl=document.getElementById('ov-content');
-  // Per-outlet mode
-  if(o){
-    // Batch 15 TAB1-OUTLET-EMPTY-PAD: empty-state без верхнього padding (вирівнювання з Tab 3 empty)
-    if(!o.i.length){
-      ovEl.style.padding='0';
-      ovEl.innerHTML=`<div class="empty-state">
-          <div class="empty-ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
-          <div class="empty-txt">Немає обладнання</div>
-          <div class="empty-hint">В цій аптеці ще не встановлено<br>QR-обладнання</div>
-        </div>`;
-      return;
-    }
-    ovEl.style.padding='12px 16px 0';
-    const items=o.i,total=items.length||1;
-    const okC=items.filter(x=>x.st==='ok').length,wC=items.filter(x=>x.st==='warn').length,lC=items.filter(x=>x.st==='late').length,cC=items.filter(x=>x.st==='crit').length;
-    const pct=n=>Math.round(n/total*100)+'%';
-    // Batch 15 TAB1-OUTLET-A4.1: Smart CTA замість prob-list (planning tool, не fix-it)
-    ovEl.innerHTML=`
-      <div class="prog-block">
-        <div class="prog-label">${okC} / ${total} відскановано (${Math.round(okC/total*100)}%)</div>
-        <div class="prog-bar-wrap">
-          <div class="mb-ok" style="width:${pct(okC)}"></div>
-          <div class="mb-warn" style="width:${pct(wC)}"></div>
-          <div class="mb-late" style="width:${pct(lC)}"></div>
-          <div class="mb-crit" style="width:${pct(cC)}"></div>
-        </div>
-        <div class="prog-legend">
-          <div class="pl-it"><span class="pl-dot" style="background:var(--ok)"></span>ОК ${okC}</div>
-          <div class="pl-it"><span class="pl-dot" style="background:var(--warn)"></span>Перевірити ${wC}</div>
-          <div class="pl-it"><span class="pl-dot" style="background:var(--late)"></span>Давно ${lC}</div>
-          <div class="pl-it"><span class="pl-dot" style="background:var(--crit)"></span>Критично ${cC}</div>
-        </div>
-      </div>
-      ${renderOutletCTA(cC, lC, wC, total)}
-      <div class="h16"></div>`;
-    return;
-  }
-  // SR mode (без вибраної аптеки) — Batch 15 TAB1-CHIP-PAIR
-  ovEl.style.padding='12px 16px 0';
-  const t=d.t||1;
-  const pctN=Math.round(d.ok/t*100);
-  const pct=n=>Math.round(n/t*100)+'%';
-
-  // 2 списки — TOP (за обладнанням) і Фокус (потребують уваги)
-  const topList = d.o
-    .map((o,i)=>({...o,idx:i}))
-    .filter(o => o.i.length > 0)
-    .sort((a,b)=>{
-      const lenDiff = b.i.length - a.i.length;
-      if(lenDiff!==0) return lenDiff;
-      return (b.ok/(b.t||1)) - (a.ok/(a.t||1));
-    })
-    .slice(0,5);
-
-  const focusList = d.o
-    .map((o,i)=>({...o,idx:i,w2:o.c*1000+o.l*100+o.w}))
-    .filter(o=>o.c>0||o.l>0||o.w>0)
-    .sort((a,b)=>b.w2-a.w2)
-    .slice(0,5);
-
-  // Batch 16 TAB1-PAIR-A-ASYMMETRY: eqIco/flagIco moved here (use both in chips AND in renderRow)
-  // Equipment icon для chip TOP та Top-card units block
-  const eqIco = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>';
-  // Flag icon для chip Фокус (watchlist/marker — не bookmark, не target)
-  const flagIco = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
-
-  // Batch 16 RENDER-ROW-ASYMMETRIC: mode='top' → eqIco+N | mode='focus' → status dots
-  // Архітектурно: Tab 1 = preview/dashboard (унікальний візуальний словник), на відміну від Tab 2/4 (working spaces з 'N + од.' патерном)
-  const renderRow = (o, i, mode) => {
-    const rightBlock = mode === 'top'
-      ? `<div class="card-units" style="margin:0 0 0 auto">${eqIco}<span>${o.i.length}</span></div>`
-      : `<div class="ph-card-dots" style="margin:0 0 0 auto;flex-shrink:0;gap:8px">${[{v:o.ok,st:'ok'},{v:o.w,st:'warn'},{v:o.l,st:'late'},{v:o.c,st:'crit'}].filter(x=>x.v>0).map(x=>`<div class="ph-dot-it"><div class="ph-dot" style="background:var(--${x.st})"></div><span style="color:var(--${x.st})">${x.v}</span></div>`).join('')}</div>`;
-    return `<div class="prob-row" onclick="selectOutlet(${o.idx})">
-      <div class="prob-num">${i+1}</div>
-      <div class="prob-info">
-        <div class="prob-addr">${o.a}</div>
-        <div class="prob-meta">${o.net||o.city||''}</div>
-      </div>
-      ${rightBlock}
-    </div>`;
-  };
-
-  const activeList = S.tab1Mode==='top' ? topList : focusList;
-  const listHTML = activeList.length
-    ? activeList.map((o,i)=>renderRow(o,i,S.tab1Mode)).join('')
-    : (S.tab1Mode==='focus'
-        ? `<div style="padding:16px 0;color:var(--ok);font-size:13px;font-weight:600;text-align:center">Все відскановано вчасно</div>`
-        : `<div style="padding:16px 0;color:var(--muted);font-size:13px;text-align:center">Немає даних</div>`);
-
-  const critPhC=d.o.filter(o=>o.c>0).length;
-  // Batch 8e TAB1-TILE-SUBS: нові subscripts на основі номенклатури
-  const cityCount = new Set(d.o.map(o=>o.city)).size;
-  const typeCount = new Set(d.o.flatMap(o=>o.i.map(it=>it.pos))).size;
-  const cityW = cityCount===1?'місті':'містах';
-  const apothW = critPhC===1?'аптеці':'аптеках';
-
-  const focusCount = focusList.length;
-
-  ovEl.innerHTML=`
-    <div class="prog-block">
-      <div class="prog-label">${d.ok.toLocaleString('uk')} / ${t.toLocaleString('uk')} відскановано (${pctN}%)</div>
-      <div class="prog-bar-wrap">
-        <div class="mb-ok" style="width:${pct(d.ok)}"></div>
-        <div class="mb-warn" style="width:${pct(d.w)}"></div>
-        <div class="mb-late" style="width:${pct(d.l)}"></div>
-        <div class="mb-crit" style="width:${pct(d.c)}"></div>
-      </div>
-      <div class="prog-legend">
-        <div class="pl-it"><span class="pl-dot" style="background:var(--ok)"></span>ОК ${d.ok}</div>
-        <div class="pl-it"><span class="pl-dot" style="background:var(--warn)"></span>Перевірити ${d.w}</div>
-        <div class="pl-it"><span class="pl-dot" style="background:var(--late)"></span>Давно ${d.l}</div>
-        <div class="pl-it"><span class="pl-dot" style="background:var(--crit)"></span>Критично ${d.c}</div>
-      </div>
-    </div>
-    <div class="ov-tiles">
-      <div class="ov-tile">
-        <div class="ov-tile-lbl"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>Аптеки</div>
-        <div class="ov-tile-val">${d.o.length}</div>
-        <div class="ov-tile-sub">У ${cityCount} ${cityW}</div>
-      </div>
-      <div class="ov-tile">
-        <div class="ov-tile-lbl"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Одиниць</div>
-        <div class="ov-tile-val">${t}</div>
-        <div class="ov-tile-sub">${typeCount} типів обладнання</div>
-      </div>
-      <!-- Batch 8d TAB1-HERO-3TILES: tile "Вчасно %" видалений — дублював prog-block -->
-      <div class="ov-tile">
-        <div class="ov-tile-lbl"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Критично</div>
-        <div class="ov-tile-val" style="color:${d.c>0?'var(--crit)':'var(--ink)'}">${d.c}</div>
-        <div class="ov-tile-sub">${d.c>0?'У '+critPhC+' '+apothW:'Все в порядку'}</div>
-      </div>
-    </div>
-    <div class="chip-pair">
-      <div class="chip-pair-it${S.tab1Mode==='top'?' act':''}" onclick="switchTab1Mode('top')">
-        <span class="cp-ico">${eqIco}</span>Топ
-      </div>
-      <div class="chip-pair-it${S.tab1Mode==='focus'?' act':''}" onclick="switchTab1Mode('focus')">
-        <span class="cp-ico">${flagIco}</span>Фокус${focusCount>0?`<span class="cp-cnt">${focusCount}</span>`:''}
-      </div>
-    </div>
-    <div class="prob-list">${listHTML}</div>
-    <div class="h16"></div>`;
+  if(S.sw==='snap'){
+    body.classList.add('no-transition'); paint();
+    requestAnimationFrame(function(){requestAnimationFrame(function(){body.classList.remove('no-transition');});});
+  } else { paint(); }
 }
 
-// Batch 15 TAB1-OUTLET-CTA: Smart CTA з 4 станами — navigational tone
-function renderOutletCTA(c, l, w, total){
-  if(c>0){
-    return `<button class="cta-btn crit" onclick="ctaToEquip('crit')">
-      <span class="cta-btn-l"><span class="cta-btn-dot crit"></span><span class="cta-btn-txt">Переглянути критичне</span></span>
-      <span class="cta-btn-cnt">${c} ›</span>
-    </button>`;
-  }
-  if(l>0){
-    return `<button class="cta-btn late" onclick="ctaToEquip('late')">
-      <span class="cta-btn-l"><span class="cta-btn-dot late"></span><span class="cta-btn-txt">Переглянути давнє</span></span>
-      <span class="cta-btn-cnt">${l} ›</span>
-    </button>`;
-  }
-  if(w>0){
-    return `<button class="cta-btn warn" onclick="ctaToEquip('warn')">
-      <span class="cta-btn-l"><span class="cta-btn-dot warn"></span><span class="cta-btn-txt">Переглянути нагальне</span></span>
-      <span class="cta-btn-cnt">${w} ›</span>
-    </button>`;
-  }
-  // ALL-OK: ok-badge + neutral CTA
-  return `<div class="ok-badge"><div class="ok-badge-it"><div class="ok-badge-dot"></div>Все ідеально</div></div>
-    <button class="cta-btn" onclick="ctaToEquip(null)">
-      <span class="cta-btn-l"><span class="cta-btn-dot neutral"></span><span class="cta-btn-txt">Все обладнання</span></span>
-      <span class="cta-btn-cnt">${total} ›</span>
-    </button>`;
-}
+function bindSeg(seg,fn){$(seg).addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;fn(b.dataset.v);});}
+bindSeg('segTheme',function(v){setTheme(v);});
+bindSeg('segFill',function(v){S.fill=v;applyState();});
+bindSeg('segPress',function(v){S.press=v;applyState();});
+bindSeg('segSwitch',function(v){S.sw=v;mark('segSwitch',v);});
+bindSeg('segMotion',function(v){S.motion=v;applyState();});
 
-// Batch 15 TAB1-CTA-ACTION: перехід в Tab 4 з фільтром (або без)
-function ctaToEquip(filter){
-  S.eqFSt = filter ? [filter] : [];
-  setTab('equipment');
-}
+var btnTheme=$('btnTheme'),themeMenu=$('themeMenu');
+btnTheme.addEventListener('click',function(e){e.stopPropagation();var op=themeMenu.hidden;themeMenu.hidden=!op;btnTheme.setAttribute('aria-expanded',String(op));});
+document.querySelectorAll('.theme-item').forEach(function(item){item.addEventListener('click',function(e){e.stopPropagation();var m=item.dataset.mode;setTheme(m==='auto'?'dark':m);themeMenu.hidden=true;btnTheme.setAttribute('aria-expanded','false');});});
+document.addEventListener('click',function(e){if(!themeMenu.hidden&&!themeMenu.contains(e.target)&&!btnTheme.contains(e.target)){themeMenu.hidden=true;btnTheme.setAttribute('aria-expanded','false');}});
 
-// Batch 15 TAB1-MODE-TOGGLE: перемикання SR list режиму
-function switchTab1Mode(mode){
-  if(S.tab1Mode===mode) return;
-  S.tab1Mode = mode;
-  renderOverview();
-}
-
-// ── TAB 2: PHARMACIES ──
-function renderPharmacies(){
-  const d=sr();
-  let outs=d.o.map((o,i)=>({...o,idx:i}));
-  if(S.fNet!=='all') outs=outs.filter(o=>o.net===S.fNet);
-  if(S.fCity!=='all') outs=outs.filter(o=>o.city===S.fCity);
-  if(S.fSt.length) outs=outs.filter(o=>S.fSt.some(st=>st==='crit'?o.c>0:st==='late'?o.l>0:o.w>0));
-  const q=S.phSrch.toLowerCase().trim();
-  if(q) outs=outs.filter(o=>o.a.toLowerCase().includes(q)||o.net.toLowerCase().includes(q)||o.city.toLowerCase().includes(q));
-  outs.sort((a,b)=>(b.c+b.l+b.w)-(a.c+a.l+a.w)||b.i.length-a.i.length);
-
-  const hasF=S.fNet!=='all'||S.fCity!=='all'||S.fSt.length>0;
-  document.getElementById('ph-flt-btn').classList.toggle('on',hasF);
-  // Counter relocated to search placeholder (Batch 8b) — flt-button on-state shows filter active
-  const inp=document.getElementById('ph-srch-inp');
-  if(inp&&!inp.matches(':focus')){
-    // Batch 8e TAB2-PLACEHOLDER-FIT: скорочено для вмісту з кнопкою фільтру (раніше обрізалось)
-    inp.placeholder = `Адреса, мережа · ${d.o.length} аптек`;
-  }
-
-  document.getElementById('ph-list').innerHTML=outs.map((o,i)=>{
-    const isSel=S.outlet===o.idx;
-    const dots=[{v:o.ok,st:'ok'},{v:o.w,st:'warn'},{v:o.l,st:'late'},{v:o.c,st:'crit'}]
-      .filter(x=>x.v>0)
-      .map(x=>`<div class="ph-dot-it"><div class="ph-dot" style="background:var(--${x.st})"></div><span style="color:var(--${x.st})">${x.v}</span></div>`)
-      .join('');
-    return `<div class="ph-card${isSel?' sel':''}" onclick="selectOutlet(${o.idx})">
-      <div class="ph-rank">${i+1}</div>
-      <div class="ph-card-i">
-        <div class="ph-card-addr">${o.a}</div>
-        <div class="ph-card-meta">${o.net||''}${o.city?' · '+o.city:''}</div>
-      </div>
-      <div class="ph-card-r">
-        <div class="ph-card-rtop">
-          <div class="ph-card-cnt">${o.i.length}</div>
-          <div class="ph-card-unit">од.</div>
-        </div>
-        ${dots?`<div class="ph-card-dots-r">${dots}</div>`:''}
-      </div>
-    </div>`;
-  }).join('')||`<div style="padding:32px;text-align:center;color:var(--muted)">Нічого не знайдено</div>`;
-}
-
-// ── TAB 3: QR ──
-function renderQR(){
-  const o=out();
-  const emptyEl=document.getElementById('qr-empty');
-  const mainEl=document.getElementById('qr-main');
-
-  // Batch 13 QR-EMPTY-3STATE: no outlet / empty outlet / normal (раніше empty outlet → TypeError → stale QR)
-  if(!o){
-    emptyEl.innerHTML=`
-      <div class="empty-ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h.01M14 17h3M17 14h.01M17 17h.01M20 14v3"/></svg></div>
-      <div class="empty-txt">Оберіть аптеку</div>
-      <div class="empty-hint">Перейдіть до вкладки Аптеки та оберіть аптеку зі списку</div>
-      <button class="goto-btn" onclick="setTab('pharmacies')">→ Перейти до Аптек</button>`;
-    emptyEl.style.display='flex';
-    mainEl.style.display='none';
-    return;
-  }
-  if(!o.i.length){
-    emptyEl.innerHTML=`
-      <div class="empty-ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
-      <div class="empty-txt">Немає обладнання</div>
-      <div class="empty-hint">В цій аптеці ще не встановлено<br>QR-обладнання</div>`;
-    emptyEl.style.display='flex';
-    mainEl.style.display='none';
-    S.carIdx=0;
-    return;
-  }
-  emptyEl.style.display='none';
-  mainEl.style.display='flex';
-
-  const items=o.i;
-  S.carIdx=Math.min(S.carIdx,items.length-1);
-  const idx=S.carIdx;
-  const it=items[idx];
-
-  document.getElementById('qr-chips-row').innerHTML=items.map((x,i)=>
-    `<div class="qr-chip ${x.st}${i===idx?' act':''}" onclick="goQR(${i})"><div style="width:6px;height:6px;border-radius:50%;background:${i===idx?'var(--accent)':'var(--'+x.st+')'};flex-shrink:0"></div>${x.pos}</div>`
-  ).join('');
-
-  const dots=items.length>1?items.map((_,i)=>`<div class="qr-dot${i===idx?' act':''}"></div>`).join(''):'';
-
-  document.getElementById('qr-area').innerHTML=`
-    <div id="qr-content" style="display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;pointer-events:none">
-      <div class="qr-pos-name">${it.pos}</div>
-      <!-- Batch 8g QR-NAV-RECENTER: QR + nav в одному flex-row → стрілки гарантовано на рівні QR центру -->
-      <div class="qr-row">
-        ${items.length>1?`<button class="qr-nav" onclick="prevQR()" ${idx===0?'disabled':''} aria-label="Попередній"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>`:''}
-        <div class="qr-wrap" id="qr-box"></div>
-        ${items.length>1?`<button class="qr-nav" onclick="nextQR()" ${idx===items.length-1?'disabled':''} aria-label="Наступний"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>`:''}
-      </div>
-      <div class="qr-badge ${it.st}">
-        <div style="width:7px;height:7px;border-radius:50%;background:currentColor"></div>
-        ${ST_LBL[it.st]} · ${ST_D[it.st]}
-      </div>
-      <div class="qr-count-badge">${idx+1} / ${items.length} QR-кодів</div>
-      ${items.length>1?`<div class="qr-dots">${dots}</div>`:''}
-      <div class="guid-box">
-        <div class="guid-text">${it.qr}</div>
-        <button class="copy-btn" id="copy-btn" onclick="copyG()" style="pointer-events:auto"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
-      </div>
-    </div>`;
-
-  // Generate QR
-  const box=document.getElementById('qr-box');
-  box.innerHTML='';
-  try{
-    new QRCode(box,{text:it.qr,width:240,height:240,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
-  }catch(e){
-    box.innerHTML='<div style="width:200px;height:200px;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;border-radius:4px">QR недоступний</div>';
-  }
-  setupSwipe();
-}
-
-function copyG(){
-  const o=out();if(!o)return;
-  const _curGUID=o.i[S.carIdx]?.qr||'';
-  navigator.clipboard?.writeText(_curGUID).then(()=>{
-    const b=document.getElementById('copy-btn');
-    if(b){b.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';setTimeout(()=>{b.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';},1500);}
-  }).catch(()=>{});
-}
-function goQR(i){S.carIdx=i;renderQR();}
-function nextQR(){const o=out();if(!o||S.carIdx>=o.i.length-1)return;S.carIdx++;renderQR();}
-function prevQR(){if(S.carIdx<=0)return;S.carIdx--;renderQR();}
-
-function setupSwipe(){
-  const el=document.getElementById('qr-area');
-  if(!el||el._sw)return;
-  el._sw=true;
-  let sx=0;
-  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
-  el.addEventListener('touchend',e=>{
-    const dx=e.changedTouches[0].clientX-sx;
-    if(Math.abs(dx)<SWIPE_MIN)return;
-    if(dx<-SWIPE_TRIG)nextQR();
-    else if(dx>SWIPE_TRIG)prevQR();
-  },{passive:true});
-}
-
-// ── TAB 4: EQUIPMENT ──
-let _eqTypes=[];
-
-// Batch 21 EQ-BRAND-V2: explicit KPK order + Nurofen split (C&F, Adult, Kids).
-// Замінює Batch 9 (group→alpha) на детальний porядок як у КПК торгпреда:
-// Strepsils → Nurofen C&F → Nurofen → Nurofen Kids → Gaviscon → Evitest → Durex → інше
-const EQ_GENERIC_WL = ['ANC tray','Getty','LBox','LBoxMini','OtcKopiykaFrame','POS Name','Undefined'];
-const EQ_BRAND_ORDER = [
-  'Strepsils',     // 0
-  'Nurofen C&F',   // 1 — Cold & Flu (підкатегорія Nurofen)
-  'Nurofen',       // 2 — дорослий (без C&F, без Kids)
-  'Nurofen Kids',  // 3 — дитячий (ForChildren)
-  'Gaviscon',      // 4
-  'Evitest',       // 5
-  'Durex',         // 6 — включаючи Contex (Sexual Wellness group)
-  'Solomia',       // 7
-  'Veet',          // 8
-  'Dettol',        // 9
-  'Generic'        // 10
-];
-function eqBrand(pos){
-  if(EQ_GENERIC_WL.includes(pos))return'Generic';
-  if(/^Contex/i.test(pos))return'Durex';
-  // Nurofen variants — перевіряємо ПЕРШИМ (specific перед загальним match)
-  if(/Nurofen/i.test(pos)){
-    if(/C&F|Cold/i.test(pos))return'Nurofen C&F';
-    if(/ForChildren|Children|Kids/i.test(pos))return'Nurofen Kids';
-    return'Nurofen';
-  }
-  const p=pos.toLowerCase();
-  for(const b of ['Strepsils','Gaviscon','Evitest','Durex','Solomia','Veet','Dettol']){
-    if(p.includes(b.toLowerCase()))return b;
-  }
-  return'Generic';
-}
-function eqBrandOrder(brand){
-  const i=EQ_BRAND_ORDER.indexOf(brand);
-  return i<0?999:i;
-}
-// Batch 21 EQ-SORT-HELPER: єдина точка sort для items у вибраній аптеці.
-// Викликається in-place з selectOutlet → o.i стає sorted для ВСІХ рендерів
-// (renderQR carousel, renderEquipment outlet expand, goToQR findIndex).
-// Sort: KPK brand order → alpha pos → worst-first within pos.
-function sortItemsByBrand(items){
-  items.sort((a,b)=>{
-    const oa=eqBrandOrder(eqBrand(a.pos)), ob=eqBrandOrder(eqBrand(b.pos));
-    if(oa!==ob)return oa-ob;
-    const pc=a.pos.localeCompare(b.pos,'uk');
-    if(pc!==0)return pc;
-    const SO={crit:0,late:1,warn:2,ok:3};
-    return SO[a.st]-SO[b.st];
-  });
-}
-
-// Batch 9 EQ-CATEGORY-V2: розширена мапа категорій
-function eqCategory(pos){
-  if(/Tower/i.test(pos))return'Tower';
-  if(/Display/i.test(pos))return'Display';
-  if(/Tray/i.test(pos))return'Tray';
-  if(/Wall/i.test(pos))return'Wall';
-  if(/Shelftalker/i.test(pos))return'Shelftalker';
-  if(/Shelf/i.test(pos))return'Shelf';
-  if(/Frame/i.test(pos))return'Frame';
-  if(/Box/i.test(pos))return'Box';
-  if(/Promo/i.test(pos))return'Promo';
-  return'Other';
-}
-const EQ_CAT_LBL = {Tower:'Tower',Display:'Display',Tray:'Tray',Wall:'Wall',Shelftalker:'Shelftalker',Shelf:'Полиця',Frame:'Frame',Box:'Box',Promo:'Промо',Other:'Інше'};
-
-// Batch 9 EQ-WORST: найгірший статус для tint
-function eqWorst(t){
-  if(t.c>0)return'crit';
-  if(t.l>0)return'late';
-  if(t.w>0)return'warn';
-  return'ok';
-}
-
-function getEqTypes(d){
-  const types={};
-  for(const o of d.o){
-    for(const it of o.i){
-      if(!types[it.pos])types[it.pos]={ok:0,w:0,l:0,c:0,tot:0,outs:[]};
-      const t=types[it.pos];
-      if(it.st==='ok')t.ok++;else if(it.st==='warn')t.w++;else if(it.st==='late')t.l++;else t.c++;
-      t.tot++;
-      const oi=d.o.indexOf(o);
-      if(!t.outs.find(x=>x.idx===oi))t.outs.push({idx:oi,a:o.a,net:o.net});
-    }
-  }
-  // Batch 21 EQ-SORT-V2: explicit KPK brand order → alpha within brand (заміна Batch 9 group→alpha)
-  return Object.entries(types).map(([pos,v])=>{
-    const br=eqBrand(pos);
-    return {pos,...v,brand:br,cat:eqCategory(pos),worst:eqWorst(v)};
-  }).sort((a,b)=>{
-    const oa=eqBrandOrder(a.brand), ob=eqBrandOrder(b.brand);
-    if(oa!==ob)return oa-ob;
-    return a.pos.localeCompare(b.pos,'uk');
-  });
-}
-// Batch 10: getEqInOutlet() видалено — outlet mode переїхав на expand per QR (1 картка = 1 QR)
-function dotRowCl(ok,w,l,c){
-  return [{v:ok,st:'ok'},{v:w,st:'warn'},{v:l,st:'late'},{v:c,st:'crit'}]
-    .filter(x=>x.v>0)
-    .map(x=>`<div class="cl-st"><div class="cl-dot" style="background:var(--${x.st})"></div><span style="color:var(--${x.st})">${x.v}</span></div>`)
-    .join('');
-}
-function dotRowEq(ok,w,l,c){
-  return [{v:ok,st:'ok'},{v:w,st:'warn'},{v:l,st:'late'},{v:c,st:'crit'}]
-    .filter(x=>x.v>0)
-    .map(x=>`<div class="eq-dot-it"><div class="cl-dot" style="background:var(--${x.st})"></div><span style="color:var(--${x.st})">${x.v}</span></div>`)
-    .join('');
-}
-// Batch 10: stBadge() видалено — drill-down переїхав на ph-card pattern з cnt+dots (як Tab 2)
-
-// Batch 9 EQ-FILTER: застосовуємо search + brand + status (Batch 9.1: category прибрано)
-// Batch 11 EQ-FILTER-SUMMARY: український plural для лічильника типів
-function plUk(n,one,few,many){
-  const n10=n%10, n100=n%100;
-  if(n100>=11&&n100<=14)return many;
-  if(n10===1)return one;
-  if(n10>=2&&n10<=4)return few;
-  return many;
-}
-function eqFilter(arr){
-  const q=S.eqSrch.trim().toLowerCase();
-  return arr.filter(t=>{
-    if(q && !t.pos.toLowerCase().includes(q))return false;
-    if(S.eqFBrand!=='all' && t.brand!==S.eqFBrand)return false;
-    if(S.eqFSt.length){
-      const hits=S.eqFSt.some(st=>st==='ok'?t.ok>0:st==='warn'?t.w>0:st==='late'?t.l>0:t.c>0);
-      if(!hits)return false;
-    }
-    return true;
-  });
-}
-
-function renderEquipment(){
-  const d=sr();
-  const o=out();
-  _eqTypes=getEqTypes(d);
-  // Batch 9 EQ-FILTER-VIS: filter-row тільки в cross-SR overview mode
-  const fr=document.getElementById('eq-filter-row');
-  if(fr)fr.style.display=o?'none':'';
-  // Batch 11 EQ-FILTER-SUMMARY: ховаємо в outlet mode (filter-row там і так невидимий)
-  const fs=document.getElementById('eq-filter-summary');
-  if(fs&&o)fs.classList.remove('on');
-  if(o){
-    // Batch 11 EQ-EMPTY-OUTLET: аптека без обладнання (нові аптеки, ще не встановлено)
-    if(!o.i.length){
-      document.getElementById('eq-list').innerHTML=`<div class="empty-state">
-        <div class="empty-ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
-        <div class="empty-txt">Немає обладнання</div>
-        <div class="empty-hint">В цій аптеці ще не встановлено<br>QR-обладнання</div>
-      </div>`;
-      return;
-    }
-    // Batch 21 EQ-SORT: o.i вже sorted з selectOutlet (sortItemsByBrand in-place).
-    // Раніше тут був окремий sort — видалено для уникнення дубль-логіки.
-    const items=o.i;
-    document.getElementById('eq-list').innerHTML=`<div class="eq-cards">`+items.map(it=>{
-      // Batch 10b: QR ID 13 chars (формат XXXXXXXX-XXXX — перші 2 групи GUID з дашем)
-      const shortQR=it.qr.replace(/[{}]/g,'').slice(0,13);
-      const ok=it.st==='ok'?1:0, w=it.st==='warn'?1:0, l=it.st==='late'?1:0, c=it.st==='crit'?1:0;
-      return `<div class="eq-card" data-worst="${it.st}" data-dots="1" onclick="goToQR('${it.qr}')">
-        <div class="eq-card-top">
-          <div class="eq-card-name">${it.pos}</div>
-          <div class="eq-card-right">
-            <div class="eq-card-cnt">1</div>
-            <div class="eq-card-unit">од.</div>
-          </div>
-          <svg class="eq-card-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="eq-card-bot">
-          ${miniBar(ok,w,l,c)}
-          <div class="eq-card-dots"><div class="eq-dot-it"><div class="cl-dot" style="background:var(--${it.st})"></div><span style="color:var(--${it.st})">1</span></div></div>
-          <div class="eq-card-meta eq-card-meta-qr">${shortQR}</div>
-        </div>
-      </div>`;
-    }).join('')+`</div>`;
-    return;
-  }
-  // Batch 9 EQ-RENDER-V2: compact 2-row card з brand-group sort, filter applied, data-worst tint
-  const filtered=eqFilter(_eqTypes);
-  // Batch 11 EQ-FILTER-SUMMARY: показ кількості типів і одиниць коли активний фільтр/пошук
-  // Batch 12 EQ-FS-V2: + ratio "N з NTotal" + accent для чисел через .eq-fs-n
-  const hasF=S.eqSrch.trim()||S.eqFBrand!=='all'||S.eqFSt.length>0;
-  if(fs){
-    if(hasF&&filtered.length){
-      const totUn=filtered.reduce((s,t)=>s+t.tot,0);
-      const allTypes=_eqTypes.length, allUn=d.t;
-      fs.innerHTML=`Знайдено: <span class="eq-fs-n">${filtered.length}</span> з ${allTypes} ${plUk(allTypes,'типу','типів','типів')} · <span class="eq-fs-n">${totUn}</span> з ${allUn} од.`;
-      fs.classList.add('on');
-    }else{
-      fs.classList.remove('on');
-    }
-  }
-  if(!filtered.length){
-    document.getElementById('eq-list').innerHTML=`<div style="padding:24px 16px;text-align:center;color:var(--muted);font-size:13px">Нічого не знайдено</div>`;
-    return;
-  }
-  document.getElementById('eq-list').innerHTML=`<div class="eq-cards">`+filtered.map(t=>{
-    const i=_eqTypes.indexOf(t);
-    // Batch 9.1 EQ-DOTS-COUNT: для compact CSS при 3-4 dots
-    const dn=(t.ok>0?1:0)+(t.w>0?1:0)+(t.l>0?1:0)+(t.c>0?1:0);
-    return `<div class="eq-card" data-worst="${t.worst}" data-dots="${dn}" onclick="openEqDetail(${i})">
-      <div class="eq-card-top">
-        <div class="eq-card-name">${t.pos}</div>
-        <div class="eq-card-right">
-          <div class="eq-card-cnt">${t.tot}</div>
-          <div class="eq-card-unit">од.</div>
-        </div>
-        <svg class="eq-card-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </div>
-      <div class="eq-card-bot">
-        ${miniBar(t.ok,t.w,t.l,t.c)}
-        <div class="eq-card-dots">${dotRowEq(t.ok,t.w,t.l,t.c)}</div>
-        <div class="eq-card-meta">у ${t.outs.length}&nbsp;апт.</div>
-      </div>
-    </div>`;
-  }).join('')+`</div>`;
-}
-
-// ── GOTO QR ──
-// Batch 10: приймає QR GUID (не pos) — точний скрол на конкретний QR код.
-// Раніше goToQR(pos) брав перший item з matching pos — рандом при cnt>1 в outlet.
-function goToQR(qr){
-  const o=out();if(!o)return;
-  const idx=o.i.findIndex(x=>x.qr===qr);
-  if(idx>=0){S.carIdx=idx;setTab('qr');}
-}
-// ── NAV ──
-function setTab(t){
-  S.tab=t;
-  document.querySelectorAll('.nav-i').forEach(b=>b.classList.toggle('act',b.dataset.tab===t));
-  placeCap(!_navReady);_navReady=true; // B26 (A56): boot=snap, далі=слайд
-  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='sc-'+t));
-  // B5 Batch 8c: NO _sw reset — element persists, listener registered once for life.
-  // Previous reset caused listener accumulation → N tab switches = N nextQR() calls per swipe.
-  // Reset app-bar scroll elevation on tab switch
-  document.querySelector('.app-bar').classList.remove('scrolled');
-  // Batch 8e TAB2-UNIFY-FIX: unified-filter toggle прибрано — filter-row має власну сепарацію
-  render();
-}
-document.querySelector('.bottom-nav').addEventListener('click',e=>{
-  const b=e.target.closest('.nav-i');if(b)setTab(b.dataset.tab);
-});
-// B26 (A56): анімована nav-капсула — вимір getBoundingClientRect, slide на дію / snap на лейаут.
-// measureNav/--nav-h НЕ тут — їх споживає overlay-модель висоти (2b, скло+overlay+height, 14.14).
-let _navReady=false;
-function placeCap(snap){
-  const nav=document.getElementById('bnav');if(!nav)return;
-  const cap=nav.querySelector('.tb-cap'),btn=nav.querySelector('.nav-i.act');
-  if(!cap||!btn){if(cap)cap.style.opacity='0';return;}
-  const nr=nav.getBoundingClientRect(),r=btn.getBoundingClientRect();
-  if(r.width===0){cap.style.opacity='0';return;} // нав ще не в лейауті → переміряємо хуком
-  const apply=()=>{cap.style.width=r.width+'px';cap.style.height=r.height+'px';
-    cap.style.transform='translate('+(r.left-nr.left)+'px,'+(r.top-nr.top)+'px)';cap.style.opacity='1';};
-  if(snap){cap.classList.add('cap-no-anim');apply();requestAnimationFrame(()=>requestAnimationFrame(()=>cap.classList.remove('cap-no-anim')));}
-  else apply();
-}
-function _navSync(){placeCap(true);} // snap після зовнішньої зміни геометрії
-window.addEventListener('resize',_navSync,{passive:true});
-if(window.visualViewport)window.visualViewport.addEventListener('resize',_navSync,{passive:true});
-window.addEventListener('load',_navSync);
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>placeCap(true)); // ширина підписів зсувається на завантаженні шрифту
-
-function renderTab(){
-  if(S.tab==='overview')   renderOverview();
-  if(S.tab==='pharmacies') renderPharmacies();
-  if(S.tab==='qr')         renderQR();
-  if(S.tab==='equipment')  renderEquipment();
-}
-
-// ── SR SHEET ──
-document.getElementById('srBtn').addEventListener('click',()=>{
-  document.getElementById('sh-sr-list').innerHTML=DATA.map((d,i)=>`
-    <div class="sr-opt${S.sr===i?' sel':''}" onclick="selSR(${i})">
-      <div class="sr-av${S.sr===i?' sel':''}">${d.n.charAt(0)}</div>
-      <span class="sr-opt-name">${d.n}</span>
-    </div>`).join('');
-  openSheet('sh-sr',()=>closeSheet('sh-sr'));
-});
-function selSR(i){S.sr=i;S.outlet=null;S.carIdx=0;S.phSrch='';S.fNet='all';S.fCity='all';S.fSt=[];S.eqSrch='';S.eqFBrand='all';S.eqFSt=[];document.getElementById('ph-srch-inp').value='';document.getElementById('eq-srch-inp').value='';document.getElementById('ph-srch-clr').hidden=true;document.getElementById('eq-srch-clr').hidden=true;closeSheet('sh-sr');render();}
-function selectOutlet(i){
-  S.outlet=i;
-  // Batch 21 OUTLET-SORT-ITEMS: in-place sort o.i при виборі аптеки.
-  // Один sort покриває всі рендери (renderQR carousel, renderEquipment outlet, goToQR).
-  // S.carIdx 0 — після sort перший item = найвищий пріоритет за КПК (Strepsils, якщо є).
-  if(i!==null){
-    const _d=sr(), _o=_d&&_d.o[i];
-    if(_o&&Array.isArray(_o.i)&&_o.i.length>1)sortItemsByBrand(_o.i);
-  }
-  // Batch 17 OUTLET-CLOSE-RESET: при закритті аптеки (× на ph-banner → selectOutlet(null))
-  // скидаємо фільтри обладнання, бо вони могли бути виставлені через ctaToEquip()
-  // з Top/Focus chips в Tab 1. Інтуїтивна логіка: "закрив аптеку → повернувся до загального списку".
-  // Працює для обох flow (Top + Focus) бо обидва йдуть через один ctaToEquip.
-  if(i===null){
-    S.eqFSt=[];
-    S.eqFBrand='all';
-    S.eqSrch='';
-    const _ei=document.getElementById('eq-srch-inp');
-    if(_ei)_ei.value='';
-  }
-  if(S.tab==='qr'||S.tab==='equipment')S.carIdx=0;
-  render();
-}
-
-// ── PH FILTER ──
-document.getElementById('ph-flt-btn').addEventListener('click',openPhFlt);
-function openPhFlt(){
-  const d=sr();
-  const nets=[...new Set(d.o.map(o=>o.net).filter(Boolean))].sort();
-  const cities=[...new Set(d.o.map(o=>o.city).filter(Boolean))].sort();
-  document.getElementById('sh-flt-nets').innerHTML=
-    ['all',...nets].map(n=>`<div class="chip${S.fNet===n?' on':''}" onclick="setFNet('${n.replace(/'/g,"\\'")}')">
-      ${n==='all'?'Всі мережі':n}</div>`).join('');
-  document.getElementById('sh-flt-cities').innerHTML=
-    ['all',...cities].map(c=>`<div class="chip${S.fCity===c?' on':''}" onclick="setFCity('${c.replace(/'/g,"\\'")}')">
-      ${c==='all'?'Всі міста':c}</div>`).join('');
-  document.getElementById('sh-flt-status').innerHTML=
-    [{id:'crit',c:'crit',l:'Критично'},{id:'late',c:'late',l:'Давно'},{id:'warn',c:'warn',l:'Перевірити'}].map(s=>
-      `<div class="chip${S.fSt.includes(s.id)?' on':''}" onclick="togFSt('${s.id}')"><span class="chip-dot" style="background:var(--${s.c})"></span>${s.l}</div>`).join('');
-  openSheet('sh-flt',()=>closeSheet('sh-flt'));
-}
-function setFNet(v){S.fNet=v;renderPharmacies();openPhFlt();}
-function setFCity(v){S.fCity=v;renderPharmacies();openPhFlt();}
-function togFSt(v){const i=S.fSt.indexOf(v);if(i>=0)S.fSt.splice(i,1);else S.fSt.push(v);renderPharmacies();openPhFlt();}
-function resetFlt(){S.fNet='all';S.fCity='all';S.fSt=[];renderPharmacies();closeSheet('sh-flt');}
-
-// ── Batch 9 EQ FILTER ──
-document.getElementById('eq-flt-btn').addEventListener('click',openEqFlt);
-function openEqFlt(){
-  // Batch 21: бренди в порядку КПК (Strepsils → Nurofen variants → Gaviscon → Evitest → Durex → інше)
-  const present=[...new Set(_eqTypes.map(t=>t.brand))].sort((a,b)=>{
-    return eqBrandOrder(a)-eqBrandOrder(b);
-  });
-  document.getElementById('sh-eq-brands').innerHTML=
-    ['all',...present].map(b=>`<div class="chip${S.eqFBrand===b?' on':''}" onclick="setEqFBrand('${b.replace(/'/g,"\\'")}')">${b==='all'?'Всі бренди':b}</div>`).join('');
-  document.getElementById('sh-eq-status').innerHTML=
-    [{id:'crit',c:'crit',l:'Критично'},{id:'late',c:'late',l:'Давно'},{id:'warn',c:'warn',l:'Перевірити'},{id:'ok',c:'ok',l:'ОК'}].map(s=>
-      `<div class="chip${S.eqFSt.includes(s.id)?' on':''}" onclick="togEqFSt('${s.id}')"><span class="chip-dot" style="background:var(--${s.c})"></span>${s.l}</div>`).join('');
-  openSheet('sh-eq-flt',()=>closeSheet('sh-eq-flt'));
-}
-function setEqFBrand(v){S.eqFBrand=v;renderEquipment();openEqFlt();}
-function togEqFSt(v){const i=S.eqFSt.indexOf(v);if(i>=0)S.eqFSt.splice(i,1);else S.eqFSt.push(v);renderEquipment();openEqFlt();}
-function resetEqFlt(){S.eqSrch='';S.eqFBrand='all';S.eqFSt=[];document.getElementById('eq-srch-inp').value='';document.getElementById('eq-srch-clr').hidden=true;renderEquipment();closeSheet('sh-eq-flt');}
-
-// ── EQ DETAIL ──
-// Batch 10 EQ-DETAIL-AGG: aggregate per pharmacy (як Tab 2 ph-card pattern).
-// 1 картка = 1 аптека з cnt одиниць цього типу + dots статусів + tint за worst.
-// Раніше (b9.2) був expand per QR — дублікати адрес при 2× pos в одній аптеці.
-// Sort: worst-first (як Tab 2 prob-list) — проблемні зверху, alpha within tier.
-function openEqDetail(ti){
-  if(out())return;
-  const t=_eqTypes[ti];
-  const d2=sr();
-  // Batch 18 FILTER PASS-THROUGH: якщо на Tab 4 активний фільтр критичності — застосувати на рівні items.
-  // Brand filter не передаємо (тип уже специфічний, бренд відомий з цього типу).
-  const stFlt=(S.eqFSt&&S.eqFSt.length)?S.eqFSt:null;
-  const rows=t.outs.map(o=>{
-    const oo=d2.o[o.idx];
-    if(!oo)return null;
-    let items=oo.i.filter(x=>x.pos===t.pos);
-    if(stFlt)items=items.filter(x=>stFlt.includes(x.st));
-    if(items.length===0)return null;
-    const ok=items.filter(x=>x.st==='ok').length;
-    const w =items.filter(x=>x.st==='warn').length;
-    const l =items.filter(x=>x.st==='late').length;
-    const c =items.filter(x=>x.st==='crit').length;
-    const worst=c>0?'crit':l>0?'late':w>0?'warn':'ok';
-    return {oi:o.idx,a:oo.a,net:oo.net,city:oo.city,ok,w,l,c,tot:items.length,worst};
-  }).filter(Boolean);
-  // Title: показує total в типі коли фільтр неактивний; кількість відфільтрованих — коли активний.
-  const totalShown=rows.reduce((s,r)=>s+r.tot,0);
-  document.getElementById('sh-eq-title').textContent=t.pos+' ('+totalShown+' од.)';
-  rows.sort((a,b)=>{
-    const wa=a.c*1000+a.l*100+a.w*10;
-    const wb=b.c*1000+b.l*100+b.w*10;
-    return wb-wa || a.a.localeCompare(b.a,'uk');
-  });
-  document.getElementById('sh-eq-list').innerHTML=rows.map(r=>{
-    const dots=[{v:r.ok,st:'ok'},{v:r.w,st:'warn'},{v:r.l,st:'late'},{v:r.c,st:'crit'}]
-      .filter(x=>x.v>0)
-      .map(x=>`<div class="ph-dot-it"><div class="ph-dot" style="background:var(--${x.st})"></div><span style="color:var(--${x.st})">${x.v}</span></div>`)
-      .join('');
-    return `<div class="ph-card" data-worst="${r.worst}" onclick="selectOutlet(${r.oi});closeSheet('sh-eq')">
-      <div class="ph-card-i">
-        <div class="ph-card-addr">${r.a}</div>
-        <div class="ph-card-meta">${r.net||''}${r.city?' · '+r.city:''}</div>
-      </div>
-      <div class="ph-card-r">
-        <div class="ph-card-rtop">
-          <div class="ph-card-cnt">${r.tot}</div>
-          <div class="ph-card-unit">од.</div>
-        </div>
-        ${dots?`<div class="ph-card-dots-r">${dots}</div>`:''}
-      </div>
-    </div>`;
-  }).join('');
-  openSheet('sh-eq',()=>closeSheet('sh-eq'));
-}
-
-// ── SHEET HELPERS ──
-function openSheet(id,closeFn){
-  const el=document.getElementById(id);
-  el.classList.add('open');
-  addSwipeClose(id,closeFn);
-}
-function closeSheet(id){document.getElementById(id).classList.remove('open');}
-document.getElementById('sh-sr').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSheet('sh-sr');});
-document.getElementById('sh-flt').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSheet('sh-flt');});
-document.getElementById('sh-eq').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSheet('sh-eq');});
-// Batch 9 EQ-FLT-BACKDROP
-document.getElementById('sh-eq-flt').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSheet('sh-eq-flt');});
-
-// ── SWIPE TO CLOSE (wsd pattern) ──
-function addSwipeClose(bgId,closeFn){
-  const box=document.querySelector('#'+bgId+' .sh-box');
-  if(!box||box._sw)return;
-  box._sw=true;
-  let sy=0,ss=0,gt=false;
-  box.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;ss=box.scrollTop;gt=!!e.target.closest('.sh-grip-w');},{passive:true});
-  box.addEventListener('touchend',e=>{
-    const dy=e.changedTouches[0].clientY-sy;
-    if(gt&&dy>40)closeFn();
-    else if(ss===0&&dy>64)closeFn();
-  },{passive:true});
-}
-
-// ── SEARCH ──
-document.getElementById('ph-srch-inp').addEventListener('input',e=>{S.phSrch=e.target.value;document.getElementById('ph-srch-clr').hidden=!S.phSrch;renderPharmacies();});
-document.getElementById('ph-srch-clr').addEventListener('click',()=>{const i=document.getElementById('ph-srch-inp');i.value='';S.phSrch='';document.getElementById('ph-srch-clr').hidden=true;renderPharmacies();i.focus();});
-// Batch 9 EQ-SRCH
-document.getElementById('eq-srch-inp').addEventListener('input',e=>{S.eqSrch=e.target.value;document.getElementById('eq-srch-clr').hidden=!S.eqSrch;renderEquipment();});
-document.getElementById('eq-srch-clr').addEventListener('click',()=>{const i=document.getElementById('eq-srch-inp');i.value='';S.eqSrch='';document.getElementById('eq-srch-clr').hidden=true;renderEquipment();i.focus();});
-
-// ── THEME (Batch 24) ──
-// 3-state: auto/light/dark. localStorage persist, FOUC fix у <head>, iOS 18+ live system listener.
-const THEME_KEY = 'qr-theme';
-function getThemeMode(){
-  try { return localStorage.getItem(THEME_KEY) || 'auto'; }
-  catch(e){ return 'auto'; }
-}
-function applyTheme(){
-  const mode = getThemeMode();
-  const sysDark = matchMedia('(prefers-color-scheme:dark)').matches;
-  const dark = mode === 'dark' || (mode === 'auto' && sysDark);
-  const html = document.documentElement;
-  html.setAttribute('data-theme', dark ? 'dark' : 'light');
-  html.setAttribute('data-theme-mode', mode);
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = dark ? '#0a0e14' : '#eef3f2';
-  document.querySelectorAll('.theme-item').forEach(it => {
-    it.classList.toggle('active', it.dataset.mode === mode);
-  });
-  const lbl = mode === 'auto' ? 'Системна' : mode === 'dark' ? 'Темна' : 'Світла';
-  document.getElementById('btnTheme').setAttribute('aria-label', 'Тема: ' + lbl);
-  if(typeof placeCap==='function')placeCap(true); // B26 (A57): снап nav-капсули на зміну теми (cap-bg/тіні стрибають)
-}
-function setThemeMode(mode){
-  try {
-    if (mode === 'auto') localStorage.removeItem(THEME_KEY);
-    else localStorage.setItem(THEME_KEY, mode);
-  } catch(e) { /* private mode → не persist, але apply */ }
-  applyTheme();
-}
-// Batch 24.1: prevent transition fade на launch (CSS vars змінюються при applyTheme)
-document.documentElement.classList.add('no-transition');
-applyTheme();
-requestAnimationFrame(() => {
-  requestAnimationFrame(() => {
-    document.documentElement.classList.remove('no-transition');
-  });
-});
-// System listener — iOS 18+ (Apple fixed PWA bug у iOS 18, iOS 15-17 потребує reload PWA)
-matchMedia('(prefers-color-scheme:dark)').addEventListener('change', () => {
-  if (getThemeMode() === 'auto') applyTheme();
-});
-// Batch 24.1: Multi-window sync — користувач змінив тему в Safari tab → PWA на home screen теж оновиться
-window.addEventListener('storage', (e) => {
-  if (e.key === THEME_KEY) applyTheme();
-});
-// btnTheme: toggle dropdown
-const btnTheme  = document.getElementById('btnTheme');
-const themeMenu = document.getElementById('themeMenu');
-btnTheme.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const opening = themeMenu.hidden;
-  themeMenu.hidden = !opening;
-  btnTheme.setAttribute('aria-expanded', String(opening));
-});
-// Item click → set mode + close
-document.querySelectorAll('.theme-item').forEach(item => {
-  item.addEventListener('click', (e) => {
-    e.stopPropagation();
-    setThemeMode(item.dataset.mode);
-    themeMenu.hidden = true;
-    btnTheme.setAttribute('aria-expanded', 'false');
-  });
-});
-// Click outside → close
-document.addEventListener('click', (e) => {
-  if (!themeMenu.hidden && !themeMenu.contains(e.target) && !btnTheme.contains(e.target)){
-    themeMenu.hidden = true;
-    btnTheme.setAttribute('aria-expanded', 'false');
-  }
-});
-
-// ── IOS ──
-// B2a Batch 8c: pinch-zoom listeners consolidated to single registration below (was 2× = 6 listeners).
-(function(){
-  const isS=window.matchMedia('(display-mode:standalone)').matches||navigator.standalone;
-  if(!isS)return;
-  const sab=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab'))||0;
-  if(sab>0){const d=window.innerHeight-(screen.height-sab);if(d>sab*.5)document.documentElement.classList.add('pwa-full');}
-})();
-
-// ── VIEWPORT FIT ── (Batch 8h TAB3-VIEWPORT-FIT + Batch 8i PWA-ROOMY-VH)
-// Реактивне відстеження висоти viewport через visualViewport API (синхронно з Safari toolbar появою/зникненням).
-// 3-режимна архітектура:
-//   vh<720    → body.tight-vh   (iPhone SE / Safari toolbar активний на старих пристроях)
-//   720-790   → default          (Safari toolbar ON на сучасних, iPhone XS PWA)
-//   vh>790    → body.roomy-vh    (PWA на iPhone Pro+, Safari toolbar OFF на сучасних — luxury mode)
-// Threshold 790 обрано як межа: iPhone XS PWA=778 (default), iPhone 15 Pro Safari OFF=810 / PWA=830 (roomy).
-(function(){
-  const vv=window.visualViewport;
-  function checkVh(){
-    const vh=vv?vv.height:window.innerHeight;
-    document.body.classList.toggle('tight-vh',vh<720);
-    document.body.classList.toggle('roomy-vh',vh>790);
-  }
-  if(vv){
-    vv.addEventListener('resize',checkVh);
-    vv.addEventListener('scroll',checkVh);
-  }else{
-    window.addEventListener('resize',checkVh);
-  }
-  checkVh();
-})();
-
-
-// ── SCROLL ELEVATION ── (B2b Batch 8c: cached selectors + RAF throttle)
-const _appBar=document.querySelector('.app-bar');
-document.querySelectorAll('.scroll-a').forEach(el=>{
-  const screen=el.closest('.screen');
-  let ticking=false;
-  el.addEventListener('scroll',()=>{
-    if(ticking)return;
-    ticking=true;
-    requestAnimationFrame(()=>{
-      if(screen&&screen.classList.contains('active')){
-        _appBar.classList.toggle('scrolled',el.scrollTop>8);
-      }
-      ticking=false;
-    });
-  },{passive:true});
-});
-// ── PINCH-ZOOM BLOCK (Batch 8b) ──
-// iOS Safari ignores user-scalable=no in viewport meta; gesture events are the reliable way.
-// touch-action:pan-x pan-y on html/body covers other engines.
-['gesturestart','gesturechange','gestureend'].forEach(ev=>{
-  document.addEventListener(ev,e=>e.preventDefault(),{passive:false});
-});
-
-// ── INIT ──
-function render(){renderHeader();renderBanner();renderCtxLayer();renderTab();}
-render();
-
+applyState();
 </script>
 </body>
 </html>
