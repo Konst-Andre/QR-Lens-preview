@@ -52,6 +52,9 @@
   --accent:#2A8C84;--accent-hover:#329A91;--accent-active:#237770;
   --accent-soft:#E8F4F2;--accent-soft-2:rgba(42,140,132,.10);
   --accent-border:rgba(42,140,132,.22);--accent-glow:rgba(42,140,132,.12);
+  /* B26 (2a): accent-text = active-текст nav + D2 (A1, новий токен). cap-bg = fill капсули nav + база D2-dark-градієнта (A56/A6). */
+  --accent-text:#237770;--cap-bg:var(--accent-soft); /* світла: cap-bg = accent-soft (#E8F4F2) */
+  --nav-dur:400ms;--nav-ease:cubic-bezier(.34,1.3,.64,1); /* A56/A57: nav-капсула — мʼякша пружина за seg */
   --sh1:0 1px 2px rgba(20,40,35,.05),0 2px 8px rgba(20,40,35,.05);
   --sh2:0 2px 6px rgba(20,40,35,.07),0 8px 24px rgba(20,40,35,.07);
   /* Batch 25.2 поліш#2: band-власний токен (НЕ чіпаємо --bg-soft — його реюзають sr-pill/icon-btn/ph-rank; регрес-урок #1). Світла=Well (A51 inset). */
@@ -68,6 +71,7 @@
   --accent:#2A8C84;--accent-hover:#329A91;--accent-active:#237770;
   --accent-soft:#1A4540;--accent-soft-2:rgba(42,140,132,.10);
   --accent-border:rgba(42,140,132,.28);--accent-glow:rgba(42,140,132,.15);
+  --accent-text:#34A097;--cap-bg:#37414f; /* B26 (2a): темна cap-bg=DB (тон +2, НЕ --card-2 #2b3340; A45 — обʼєм тоном) */
   --sh1:inset 0 1px 0 rgba(255,255,255,.055),inset 0 -1px 0 rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.28);
   --sh2:0 2px 6px rgba(0,0,0,.28),0 12px 28px rgba(0,0,0,.14);
   --band:color-mix(in srgb,var(--card) 50%,var(--bg-soft));--band-sh:inset 0 1px 0 rgba(255,255,255,.05); /* Batch 25.2: темна=Lift-M (≈+10, біля #1a212c) + A45 top-хайлайт */
@@ -83,6 +87,7 @@
     --accent:#2A8C84;--accent-hover:#329A91;--accent-active:#237770;
     --accent-soft:#1A4540;--accent-soft-2:rgba(42,140,132,.10);
     --accent-border:rgba(42,140,132,.28);--accent-glow:rgba(42,140,132,.15);
+    --accent-text:#34A097;--cap-bg:#37414f; /* B26 (2a): auto-dark паритет — cap-bg=DB, НЕ --card-2 */
     --sh1:inset 0 1px 0 rgba(255,255,255,.055),inset 0 -1px 0 rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.28);
     --sh2:0 2px 6px rgba(0,0,0,.28),0 12px 28px rgba(0,0,0,.14);
     --band:color-mix(in srgb,var(--card) 50%,var(--bg-soft));--band-sh:inset 0 1px 0 rgba(255,255,255,.05); /* Batch 25.2: auto-dark паритет із [data-theme=dark] */
@@ -135,21 +140,31 @@ button{font-family:inherit;border:none;cursor:pointer;background:none;color:inhe
 [data-theme="dark"] .th-svg .th-moon{opacity:1}
 /* Batch 24: Theme dropdown menu (3-state auto/light/dark) */
 .theme-wrap{position:relative;flex-shrink:0}
-.theme-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);box-shadow:var(--sh2);padding:4px;z-index:200;animation:tm-in .12s ease-out}
+.theme-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);box-shadow:var(--sh2);padding:4px;display:flex;flex-direction:column;gap:3px;z-index:200;animation:tm-in .12s ease-out} /* B26: gap:3px — повітря під drop-тінь D2-капсули (A6 §2) */
 .theme-menu[hidden]{display:none}
 @keyframes tm-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 /* Batch 24.1: Accessibility — респектуємо системне reduce motion */
 @media (prefers-reduced-motion: reduce){.theme-menu{animation:none}}
 /* Batch 24.1: Transition prevention при init applyTheme — без fade на launch */
 .no-transition,.no-transition *{transition:none !important}
-.theme-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border-radius:var(--rxs);font-size:13px;color:var(--ink);text-align:left;transition:background .1s;cursor:pointer}
+.theme-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:1px solid transparent;border-radius:var(--rxs);font-size:13px;color:var(--ink);text-align:left;transition:background .1s,box-shadow .12s ease,border-color .12s ease;cursor:pointer} /* B26: border 1px transparent — резерв (active не зсуває лейаут); transition += shadow/border (A6 §2) */
 .theme-item:active{background:var(--bg-soft)}
 .theme-item .ti-icon{flex-shrink:0;color:var(--ink-2)}
 .theme-item .ti-label{flex:1}
 .theme-item .ti-check{flex-shrink:0;color:var(--accent);opacity:0;transition:opacity .1s}
-.theme-item.active{color:var(--accent);font-weight:600}
-.theme-item.active .ti-icon{color:var(--accent)}
-.theme-item.active .ti-check{opacity:1}
+/* B26 (A6 §3): обрана тема = глянцева капсула «D2». Світла = баланс «m». ink-тинт rgba(20,40,35) (QR). */
+.theme-item.active{color:var(--accent-text);font-weight:600;
+  background:linear-gradient(180deg,
+    color-mix(in srgb,var(--accent-soft) 66%,#fff),
+    color-mix(in srgb,var(--accent-soft) 96%,var(--accent)));
+  border-color:color-mix(in srgb,var(--accent) 24%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(20,40,35,.07),0 1px 2px rgba(20,40,35,.11),0 3px 7px rgba(20,40,35,.07)}
+.theme-item.active .ti-icon{color:var(--accent-text)}
+.theme-item.active .ti-check{opacity:1;color:var(--accent-text)}
+[data-theme="dark"] .theme-item.active{ /* tone+inset, БЕЗ drop (A45/A39); lit-edge .11 (НЕ .06 — Drive-число тоне на QR-dark) */
+  background:linear-gradient(180deg,color-mix(in srgb,var(--cap-bg) 88%,var(--accent)),var(--card));
+  border-color:color-mix(in srgb,var(--accent) 14%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11),inset 0 -1px 0 rgba(0,0,0,.2)}
 .chev-ico{color:var(--muted);flex-shrink:0}
 .timestamp{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex-shrink:0;animation:livePulse 2s ease-in-out infinite}
@@ -170,13 +185,23 @@ button{font-family:inherit;border:none;cursor:pointer;background:none;color:inhe
 /* NAV */
 /* Batch 8h BOTTOM-NAV-REBALANCE: повернуто KPI Lens patten — justify-center + symmetric padding.
    Скасовує 8e TAB-BAR-COMPACT (flex-end + малий padding), що в PWA mode давало надмірну порожнечу між іконками і home indicator. */
-.bottom-nav{display:flex;background:var(--card);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:8px}
+.bottom-nav{position:relative;display:flex;background:var(--card);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:8px} /* B26: position:relative — якір абс-капсули .tb-cap (A56) */
 @media(display-mode:standalone){.bottom-nav{padding-bottom:0}}
 html.pwa-full .nav-i{padding-top:8px;padding-bottom:calc(8px + var(--sab))}
-.nav-i{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 4px;border-radius:12px;color:var(--muted);font-size:10px;font-weight:600;transition:color .15s,background .15s;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.nav-i:active{background:var(--bg-soft)}
-.nav-i svg{width:20px;height:20px;transition:stroke .15s}
-.nav-i.act{color:var(--accent)}
+.nav-i{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;border-radius:12px;color:var(--muted);font-size:10px;font-weight:600;position:relative;z-index:1;transition:color .15s,transform .12s;cursor:pointer;-webkit-tap-highlight-color:transparent} /* B26: gap 2→3, z:1 над капсулою, press=scale (A56) */
+.nav-i:active{transform:scale(.96)} /* B26: A56 press — без bg поверх teal-капсули (--bg-soft токен недоторканий) */
+.nav-i svg{width:22px;height:22px;transition:stroke .15s} /* B26: 20→22 (A56) */
+.nav-i.act{color:var(--accent-text)} /* B26: --accent (обидві теми, без G1-сплиту — QR простіший за Drive) */
+/* B26 (A56): анімована капсула активного табу — slide на тап, snap на лейаут */
+.tb-cap{position:absolute;left:0;top:0;border-radius:14px;z-index:0;opacity:0;pointer-events:none;
+  background:var(--cap-bg);
+  box-shadow:0 1px 2px rgba(20,40,35,.14),0 2px 6px rgba(20,40,35,.09),0 6px 14px rgba(20,40,35,.07),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1.5px 1px rgba(20,40,35,.06);
+  border:1px solid color-mix(in srgb,var(--accent) 16%,transparent);
+  transition:transform var(--nav-dur) var(--nav-ease),width var(--nav-dur) var(--nav-ease),height var(--nav-dur) var(--nav-ease)}
+.tb-cap.cap-no-anim{transition:none} /* снап на init/resize/reflow/тему */
+[data-theme="dark"] .tb-cap{border:none; /* темна: inset-рім замість бордера, обʼєм тоном (A45); lit-edge .14 — A56, валідовано glass-sanity */
+  box-shadow:0 1px 2px rgba(0,0,0,.3),0 4px 12px rgba(0,0,0,.2),0 8px 20px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.18),inset 0 0 0 1px color-mix(in srgb,var(--accent) 16%,transparent)}
+@media(prefers-reduced-motion:reduce){.tb-cap{transition:none}}
 /* UTILS */
 .sec-t{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
 .h16{height:16px}
@@ -590,21 +615,22 @@ body.roomy-vh .qr-area{gap:12px}
     </div>
 
   </div>
-  <nav class="bottom-nav">
+  <nav class="bottom-nav" id="bnav">
+    <span class="tb-cap" aria-hidden="true"></span>
     <button class="nav-i act" data-tab="overview">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
       <span>Огляд</span>
     </button>
     <button class="nav-i" data-tab="pharmacies">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
       <span>Аптеки</span>
     </button>
     <button class="nav-i" data-tab="qr">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h.01M14 17h3M17 14h.01M17 17h.01M20 14v3"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h.01M14 17h3M17 14h.01M17 17h.01M20 14v3"/></svg>
       <span>QR-коди</span>
     </button>
     <button class="nav-i" data-tab="equipment">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
       <span>Обладнання</span>
     </button>
   </nav>
@@ -1324,6 +1350,7 @@ function goToQR(qr){
 function setTab(t){
   S.tab=t;
   document.querySelectorAll('.nav-i').forEach(b=>b.classList.toggle('act',b.dataset.tab===t));
+  placeCap(!_navReady);_navReady=true; // B26 (A56): boot=snap, далі=слайд
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='sc-'+t));
   // B5 Batch 8c: NO _sw reset — element persists, listener registered once for life.
   // Previous reset caused listener accumulation → N tab switches = N nextQR() calls per swipe.
@@ -1335,6 +1362,25 @@ function setTab(t){
 document.querySelector('.bottom-nav').addEventListener('click',e=>{
   const b=e.target.closest('.nav-i');if(b)setTab(b.dataset.tab);
 });
+// B26 (A56): анімована nav-капсула — вимір getBoundingClientRect, slide на дію / snap на лейаут.
+// measureNav/--nav-h НЕ тут — їх споживає overlay-модель висоти (2b, скло+overlay+height, 14.14).
+let _navReady=false;
+function placeCap(snap){
+  const nav=document.getElementById('bnav');if(!nav)return;
+  const cap=nav.querySelector('.tb-cap'),btn=nav.querySelector('.nav-i.act');
+  if(!cap||!btn){if(cap)cap.style.opacity='0';return;}
+  const nr=nav.getBoundingClientRect(),r=btn.getBoundingClientRect();
+  if(r.width===0){cap.style.opacity='0';return;} // нав ще не в лейауті → переміряємо хуком
+  const apply=()=>{cap.style.width=r.width+'px';cap.style.height=r.height+'px';
+    cap.style.transform='translate('+(r.left-nr.left)+'px,'+(r.top-nr.top)+'px)';cap.style.opacity='1';};
+  if(snap){cap.classList.add('cap-no-anim');apply();requestAnimationFrame(()=>requestAnimationFrame(()=>cap.classList.remove('cap-no-anim')));}
+  else apply();
+}
+function _navSync(){placeCap(true);} // snap після зовнішньої зміни геометрії
+window.addEventListener('resize',_navSync,{passive:true});
+if(window.visualViewport)window.visualViewport.addEventListener('resize',_navSync,{passive:true});
+window.addEventListener('load',_navSync);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>placeCap(true)); // ширина підписів зсувається на завантаженні шрифту
 
 function renderTab(){
   if(S.tab==='overview')   renderOverview();
@@ -1527,6 +1573,7 @@ function applyTheme(){
   });
   const lbl = mode === 'auto' ? 'Системна' : mode === 'dark' ? 'Темна' : 'Світла';
   document.getElementById('btnTheme').setAttribute('aria-label', 'Тема: ' + lbl);
+  if(typeof placeCap==='function')placeCap(true); // B26 (A57): снап nav-капсули на зміну теми (cap-bg/тіні стрибають)
 }
 function setThemeMode(mode){
   try {
