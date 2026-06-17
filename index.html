@@ -1700,7 +1700,8 @@ function setThemeMode(mode, rect){
   else snapTheme();
 }
 // Batch 24.1: prevent transition fade на launch; B27: через snapTheme (DRY — той самий снап-цикл)
-snapTheme();
+try{ var __D=window.__diag||function(){}; __D('TL: boot start');
+snapTheme(); __D('TL1: snapTheme ok');
 // System listener — iOS 18+ (Apple fixed PWA bug у iOS 18, iOS 15-17 потребує reload PWA)
 matchMedia('(prefers-color-scheme:dark)').addEventListener('change', () => {
   if (getThemeMode() === 'auto') snapTheme();
@@ -1738,9 +1739,11 @@ document.addEventListener('click', (e) => {
   }
 });
 
+__D('TL2: theme-ui ok');
 // ── IOS ──
 // B29: pwa-full детект видалено — єдиний CSS-споживач (html.pwa-full .nav-i) прибрано разом з in-flow nav-моделлю; overlay-бар фарбує home-indicator через власний padding (max(9px,var(--sab))), клас більше не потрібен.
 
+__D('TL3: ios-sec ok');
 // ── VIEWPORT FIT ── (Batch 8h TAB3-VIEWPORT-FIT + Batch 8i PWA-ROOMY-VH)
 // Реактивне відстеження висоти viewport через visualViewport API (синхронно з Safari toolbar появою/зникненням).
 // 3-режимна архітектура:
@@ -1765,6 +1768,7 @@ document.addEventListener('click', (e) => {
 })();
 
 
+__D('TL4: viewport ok');
 // ── SCROLL ELEVATION ── (B2b Batch 8c: cached selectors + RAF throttle)
 const _appBar=document.querySelector('.app-bar');
 document.querySelectorAll('.scroll-a').forEach(el=>{
@@ -1781,6 +1785,7 @@ document.querySelectorAll('.scroll-a').forEach(el=>{
     });
   },{passive:true});
 });
+__D('TL5: scroll ok');
 // ── PINCH-ZOOM BLOCK (Batch 8b) ──
 // iOS Safari ignores user-scalable=no in viewport meta; gesture events are the reliable way.
 // touch-action:pan-x pan-y on html/body covers other engines.
@@ -1788,6 +1793,7 @@ document.querySelectorAll('.scroll-a').forEach(el=>{
   document.addEventListener(ev,e=>e.preventDefault(),{passive:false});
 });
 
+__D('TL6: gesture ok');
 // ── CHIP PRESS ── B30 (A67): JS-керований стиск чіпів. Делегація на ПОСТІЙНИЙ #qr-chips-row → переживає innerHTML re-render списку (A54/14.13). pointerleave знімає при слайді геть; pointercancel — при scroll-перехопленні (ряд скролиться). _pressBound-гард проти подвійного reg (wsd 10.2).
 (function(){
   const row=document.getElementById('qr-chips-row'); if(!row||row._pressBound)return; row._pressBound=true;
@@ -1796,6 +1802,8 @@ document.querySelectorAll('.scroll-a').forEach(el=>{
   row.addEventListener('pointerup',rel); row.addEventListener('pointercancel',rel); row.addEventListener('pointerleave',rel);
 })();
 
+__D('TL7: chip ok — tail done');
+}catch(__e){ (window.__diag||function(){})('TL THREW: '+(__e&&__e.name)+': '+(__e&&__e.message)+' | STACK '+(__e&&__e.stack)); }
 // ── INIT ──
 function render(){
   var D=window.__diag||function(){};
