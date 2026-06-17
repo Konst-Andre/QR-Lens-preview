@@ -77,6 +77,8 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   --band:var(--bg-soft);--band-sh:inset 0 2px 4px rgba(0,0,0,.10);
   /* B30 (A65 well-токен-стандарт): ПОЛЕ=deboss. Споживачі guid-box/ph-srch/flt-btn. ОКРЕМО від --band (хедер-родина .37/.09) і --bg-soft (спільний, не ретюнити). Світла=inset усередину. */
   --well-bg:var(--bg-soft);--well-sh:inset 0 1px 5px rgba(0,0,0,.115);
+  /* B31 (A65 RECESS-таця під чіпи .qr-chips): КОНТЕЙНЕР=well/deboss, чіпи=elevation випирають. Власний токен (НЕ реюз --well-* поле / --band-* банер; A62/A65 — інша магнітуда). Світла=втоплений сірий + inset (device: сила≈125). */
+  --tray-bg:color-mix(in srgb,var(--bg),var(--border-2) 30%);--tray-sh:inset 0 2px 6px rgba(0,0,0,.14);
   --r:14px;--rs:10px;--rxs:6px;--sab:env(safe-area-inset-bottom,0px);
   --morph-dur:560ms;--menu-dur:360ms; /* B27 (A57): морф-іконка теми · дропдаун-пружина. Тема-незалежні → лише :root */
   --vt-dur:550ms;--vt-ease:cubic-bezier(.42,0,.42,1);--vt-x:50%;--vt-y:50%; /* B28 (VT-reveal): clip-коло перефарбу теми. 550≈--morph-dur(560) — зчеплення: морф іконки грає на живому DOM під VT-оверлеєм, доходять разом. origin=кнопка → x/y перезаписує JS із rect btnTheme; дефолт-центр як фолбек. */
@@ -98,6 +100,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   --sh2:0 2px 6px rgba(0,0,0,.28),0 12px 28px rgba(0,0,0,.14);
   --band:color-mix(in srgb,var(--card) 50%,var(--bg-soft));--band-sh:inset 0 1px 0 rgba(255,255,255,.05); /* Batch 25.2: темна=Lift-M (≈+10, біля #1a212c) + A45 top-хайлайт */
   --well-bg:color-mix(in srgb,var(--bg-soft) 70%,var(--card));--well-sh:inset 0 1.5px 2px rgba(0,0,0,.30),inset 0 -1px 0 rgba(255,255,255,.098); /* B30 (A65): темна well — тінь зверху-внутр(.30) + світло знизу(.098) рятує від «діри» на OLED (A45/A51). Дзеркало хедер-DEBOSS р.148, але тіло-тір, не хедер. */
+  --tray-bg:color-mix(in srgb,var(--bg),var(--card) 35%);--tray-sh:inset 0 2px 2px rgba(0,0,0,.16),inset 0 -1px 0 rgba(255,255,255,.05); /* B31 (A65 RECESS-таця): темна тихіша за світлу — на near-black inset важчий, тон-плейн (mix bg+card 35%) несе відділення (A45), inset+нижнє світло підкреслюють дип (device: сила≈45). */
 }
 @media(prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -117,6 +120,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     --sh2:0 2px 6px rgba(0,0,0,.28),0 12px 28px rgba(0,0,0,.14);
     --band:color-mix(in srgb,var(--card) 50%,var(--bg-soft));--band-sh:inset 0 1px 0 rgba(255,255,255,.05); /* Batch 25.2: auto-dark паритет із [data-theme=dark] */
     --well-bg:color-mix(in srgb,var(--bg-soft) 70%,var(--card));--well-sh:inset 0 1.5px 2px rgba(0,0,0,.30),inset 0 -1px 0 rgba(255,255,255,.098); /* B30 (A65): auto-dark паритет well із [data-theme=dark] — інакше auto-режим на темній системі взяв би світлі well-токени */
+    --tray-bg:color-mix(in srgb,var(--bg),var(--card) 35%);--tray-sh:inset 0 2px 2px rgba(0,0,0,.16),inset 0 -1px 0 rgba(255,255,255,.05); /* B31: auto-dark паритет tray із [data-theme=dark] */
   }
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -445,7 +449,7 @@ body.tab4-fused #ctx-layer{background:var(--bg-soft);border-top:1px dashed var(-
 .qr-nav{display:flex;align-items:center;justify-content:center;width:36px;height:44px;border-radius:14px;background:transparent;border:none;cursor:pointer;color:var(--ink-2);transition:background .15s,transform .12s,opacity .15s;pointer-events:auto;flex-shrink:0}
 .qr-nav:active{background:var(--accent-soft);transform:scale(.92);color:var(--accent)}
 .qr-nav:disabled{opacity:.2;cursor:default;pointer-events:none}
-.qr-chips{display:flex;gap:6px;padding:8px 16px 16px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;border-top:1px solid var(--border);background:var(--bg-soft);-webkit-mask-image:linear-gradient(to right,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%)}
+.qr-chips{display:flex;gap:6px;padding:8px 16px 16px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;border-top:1px solid var(--border);background:var(--tray-bg);box-shadow:var(--tray-sh);-webkit-mask-image:linear-gradient(to right,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%)}
 .qr-chips::-webkit-scrollbar{display:none}
 .qr-chip{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:11px;font-weight:600;white-space:nowrap;cursor:pointer;background:var(--card);color:var(--ink-2);flex-shrink:0;transition:transform 280ms cubic-bezier(.34,1.5,.64,1);min-height:34px;display:inline-flex;align-items:center;gap:5px}/* B30 (A67): transition:all→transform (press-spring); return 280 + пружина 1.5 */
 .qr-chip.act{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);border-width:1.5px}
@@ -457,7 +461,7 @@ body.tab4-fused #ctx-layer{background:var(--bg-soft);border-top:1px dashed var(-
 .qr-chip.pressing{transform:scale(.92);transition-duration:80ms}
 /* B30 (A66): elevation НЕактивних чіпів — асиметрія тем. Світла=ШИРОКА drop (14px; світло-зверху мертве на білому). Темна=світло-зверху+слабка drop (drop мертва на OLED, A45). Grad ±8% обидві. .act виключено (власний glow). A8: :not(.act) (0,2,0)>база(0,1,0); dark (0,3,0)>світла. */
 .qr-chip:not(.act){background:linear-gradient(180deg,color-mix(in srgb,var(--card) 92%,#fff),color-mix(in srgb,var(--card) 92%,#000));box-shadow:0 1px 2px rgba(0,0,0,.055),0 5px 14px rgba(0,0,0,.120)}
-[data-theme="dark"] .qr-chip:not(.act),:root:not([data-theme="light"]) .qr-chip:not(.act){box-shadow:inset 0 1px 0 rgba(255,255,255,.060),0 1px 2px rgba(0,0,0,.027),0 5px 14px rgba(0,0,0,.060)}
+[data-theme="dark"] .qr-chip:not(.act),:root:not([data-theme="light"]) .qr-chip:not(.act){box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 1px 2px rgba(0,0,0,.027),0 5px 14px rgba(0,0,0,.060)}
 /* Batch 8h TAB3-VIEWPORT-FIT: при tight viewport (Safari toolbar активний, vh<720) зменшуємо розміри QR area щоб все вміщалось.
    visualViewport API tracking через JS додає body.tight-vh при необхідності. */
 /* Batch 8i: додано justify-content:flex-start (override проти нового space-between default); guid-text 9→10 (узгоджено з новим базовим 12) */
@@ -772,7 +776,7 @@ function out() { return S.outlet !== null ? sr().o[S.outlet] : null; }
 
 const ST_COL = {ok:'var(--ok)',warn:'var(--warn)',late:'var(--late)',crit:'var(--crit)'};
 // B30.1/B30.4 (wsd 10.6): build-константа. Усі версійні поверхні читають APP_BUILD, не хардкод. User-visible версія білда → About-шіт (A58, Фаза 4) — це і є коректна поверхня. Console-маркер прибрано (B30.4): на реальному PWA консоль невидима юзеру (нуль користі), а в прев'ю Claude будь-який console-вивід відкриває панель Console Messages. Окремий урок про відсутність console.info у сендбоксі — кандидат Cookbook A68.
-const APP_BUILD={batch:30,rev:5,phase:'2',date:'17.06.2026'}; // rev5=B30.5 (QRCode self-host: external CDN -> inline, offline). rev4=Script-error fix. Build surface -> About sheet A58.
+const APP_BUILD={batch:31,rev:0,phase:'2',date:'17.06.2026'}; // B31: chip-tray RECESS (--tray-* токен) + чіп dark топ-світло .060→.11. rev5=B30.5 (QRCode self-host). Build surface -> About sheet A58.
 const ST_LBL = {ok:'ОК',warn:'Перевірити',late:'Давно',crit:'Критично'};
 const ST_D   = {ok:'1–30 дн',warn:'31–60 дн',late:'61–120 дн',crit:'120+ дн'};
 // B30 (A65): GUID prefix-emphasis — перший блок (до першого дефіса) у .guid-pre (ink-2/600), решта muted. Формат: {XXXXXXXX-…}.
