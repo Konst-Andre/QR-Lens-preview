@@ -406,7 +406,7 @@ body.tab4-fused #ctx-layer{background:var(--bg-soft);border-top:1px dashed var(-
 .ph-rank{width:22px;height:22px;border-radius:50%;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--muted);flex-shrink:0;transition:background .12s,color .12s}
 .ph-card.sel .ph-rank{background:var(--accent);color:#fff}
 /* QR SCREEN */
-.qr-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.qr-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding-bottom:var(--nav-h,64px)}/* B29.1 FIX: Tab3 не на .scroll-a (власний flex-лейаут qr-area+qr-chips) → овлерей-бар накрив припнутий .qr-chips. Кліренс --nav-h піднімає ряд капсул рівно над склом (як було над in-flow баром). */
 /* Batch 8i QR-AREA-DISTRIBUTE: center → space-between (name до верху, guid-box до низу, QR+badge+counter+dots розподілені посередині). padding-top 12→8 (менше повітря до ph-banner). */
 .qr-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 20px 12px;gap:8px;position:relative;overflow:hidden;touch-action:pan-y}
 .qr-pos-name{font-size:18px;font-weight:800;text-align:center;letter-spacing:-.3px;color:var(--ink);max-width:280px;word-break:break-word}
