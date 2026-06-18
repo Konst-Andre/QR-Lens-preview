@@ -163,6 +163,8 @@ button{font-family:inherit;border:none;cursor:pointer;background:none;color:inhe
 .icon-btn:active{transform:scale(.96)} /* B27: scale-прес без bg-стрибка */
 /* B27.1 (A45/A39 dark-преміум): well-бевел темної — біла губа .10 зверху + внутр. тінь знизу. На темній inset-recess невидимий → об'єм тоном+світлом. Світла недоторкана (там --band-sh inset 2px на #fff). ЛИШЕ хедер-родина (НЕ глобальний --band-sh → ph-banner/Tab-4 не чіпані). Device(compare v2)-locked. A8: (0,2,0)>база .sr-pill(0,1,0); конфлікту з :active(transform) нема (різна проп). */
 [data-theme="dark"] .sr-pill,[data-theme="dark"] .icon-btn{background:color-mix(in srgb,var(--bg-soft) 70%,var(--card));box-shadow:inset 0 1.5px 2px rgba(0,0,0,.37),inset 0 -1px 0 rgba(255,255,255,.09)} /* B27.2: dark-pill DEBOSS well — тінь зверху-внутр(.37) + світло знизу(.09) = втоплено (flip B27.1 emboss, A51 не A45); band 70% (#161c25) глибший recess, нижнє світло рятує від «діри» B26.1. Скоуп лише хедер-родина; --band/--band-sh недоторкані (ph-banner/srch/flt цілі). device-locked deboss. */
+/* B31.3 (FINDING-фікс, auto-dark gap): р.165 був ЛИШЕ explicit-dark → в auto на темній системі контролі падали на сирий --band-sh (=біле зверху=ЕМБОЗ), розбіжно з ph-banner-дебозом. Auto-dark близнюк через @media (НЕ топ-рівневий :root:not — той витік би хардкод-дебоз у auto-light). Магнітуда .37/.09 = р.165 1:1. explicit-режим не зачеплено. */
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .sr-pill,:root:not([data-theme="light"]) .icon-btn{background:color-mix(in srgb,var(--bg-soft) 70%,var(--card));box-shadow:inset 0 1.5px 2px rgba(0,0,0,.37),inset 0 -1px 0 rgba(255,255,255,.09)}}
 /* Batch 8h THEME-TOGGLE-V2: cross-fade sun/moon — opacity only (universal iOS/Android compat, без transform quirks).
    Default state (no data-theme) — місяць (вже dark-by-default). */
 .th-svg{overflow:visible}
@@ -219,6 +221,9 @@ button{font-family:inherit;border:none;cursor:pointer;background:none;color:inhe
 /* BANNER */
 /* Batch 8h TAB2-AIR-TOP: padding-top збільшено з 6→8px для air між app-bar і ph-banner */
 #ph-banner{display:flex;align-items:center;gap:8px;padding:8px 12px 7px;background:var(--band);box-shadow:var(--band-sh);border-bottom:1px solid var(--border);border-left:4px solid var(--accent);flex-shrink:0}/* Batch 25.2: band Lift/Well через --band; rail 3→4px (секція B) */
+/* B31.1 (A65/A39 dark-фікс): сирий --band-sh на темній = світло ЗВЕРХУ = ембоз → банер читався пласко й чуже vs дебоз-контролі над ним + well-версія світлої (A39 розбіжність характеру по темах). Flip → DEBOZ-well: тінь зверху(.30)+світло знизу(.070, device — підсвічує штрих-пунктир Tab-4 не забиваючи) + втоплений bg. Скоуп лише #ph-banner; --band/--band-sh цілі (контролі мають свій оверрайд р.165). Both explicit-dark + auto-dark. */
+[data-theme="dark"] #ph-banner{background:color-mix(in srgb,var(--bg-soft) 70%,var(--card));box-shadow:inset 0 1.5px 2px rgba(0,0,0,.30),inset 0 -1px 0 rgba(255,255,255,.07)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) #ph-banner{background:color-mix(in srgb,var(--bg-soft) 70%,var(--card));box-shadow:inset 0 1.5px 2px rgba(0,0,0,.30),inset 0 -1px 0 rgba(255,255,255,.07)}}/* B31.3: був топ-рівневий :root:not([data-theme=light]) → в auto-light накладав хардкод-дебоз .30 на світлий банер (well 3× за задум .10). Auto-частину в @media → дебоз лише explicit-dark + auto-dark; auto-light = база. explicit-режим не зачеплено. Консистент із хедер-фіксом р.166. */
 .ph-b-ico{color:var(--accent);flex-shrink:0;display:flex;align-items:center}
 .ph-b-body{flex:1;min-width:0}
 .ph-b-addr{font-size:12px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -281,7 +286,11 @@ button{font-family:inherit;border:none;cursor:pointer;background:none;color:inhe
 .cl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}
 /* Batch 8d TAB4-OUTLET-FUSE: візуально склеюємо ph-banner і ctx-layer на Tab 4 з outlet */
 body.tab4-fused #ph-banner{border-bottom:none}
-body.tab4-fused #ctx-layer{background:var(--bg-soft);border-top:1px dashed var(--border);padding-left:32px}
+body.tab4-fused #ctx-layer{background:color-mix(in srgb,var(--bg-soft),var(--card) 30%);border-top:1px dashed var(--border-2);padding-left:32px}/* B31.1 (світла сепарація): банер і статус мали той самий --bg-soft → зливались, пунктир --border блякнув. База=світлі: статус тон-крок +30% до card + пунктир --border-2 (device). */
+[data-theme="dark"] body.tab4-fused #ctx-layer,:root:not([data-theme="light"]) body.tab4-fused #ctx-layer{background:var(--bg-soft);border-top-color:var(--border)}/* B31.1: на темній тон-крок уже є (банер V2 ≈#161c25 vs статус --bg-soft #11161e) — restore оригінал, інакше статус зрівнявся б із bg банера V2 і re-merge. */
+/* B31.2 (A39 спліт, device/Konst): нижня лінія статус-ряду на СВІТЛІЙ ледь помітна — base --border #d3dedb майже зливається зі статус-поверхнею (#e8efed) й картками (#eef3f2); ТЕМНА вже читає --border #333b46 як чисту світлу основу-сепаратор → не чіпаємо. Підсилюємо ЛИШЕ світлу на один тон-крок →--border-2 #bfcecb (збалансовано). Закриває асиметрію B31.1 (верхній шов уже --border-2 на світлій, нижній лишався --border). Auto-safe: explicit-light + auto-light, ніколи dark; спільний --border НЕ ретюнимо (A62). */
+[data-theme="light"] .ctx-layer{border-bottom-color:var(--border-2)}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]) .ctx-layer{border-bottom-color:var(--border-2)}}
 /* Batch 9 EQ-CARD-V2: compact ~75-80px, 2-row horizontal (top: name+count+chev; bot: bar+dots+meta) */
 .eq-cards{display:flex;flex-direction:column;gap:8px;padding:10px 16px}
 .eq-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:9px 12px;box-shadow:var(--sh1);cursor:pointer;transition:border-color .12s,background .12s;position:relative;overflow:hidden}
@@ -460,7 +469,7 @@ body.tab4-fused #ctx-layer{background:var(--bg-soft);border-top:1px dashed var(-
 /* B30 (A67): press — JS-клас .pressing (не чистий :active → непомітний на швидкий тап). Down 80ms лінійно, scale .92; return через base transition (280+spring). */
 .qr-chip.pressing{transform:scale(.92);transition-duration:80ms}
 /* B30 (A66): elevation НЕактивних чіпів — асиметрія тем. Світла=ШИРОКА drop (14px; світло-зверху мертве на білому). Темна=світло-зверху+слабка drop (drop мертва на OLED, A45). Grad ±8% обидві. .act виключено (власний glow). A8: :not(.act) (0,2,0)>база(0,1,0); dark (0,3,0)>світла. */
-.qr-chip:not(.act){background:linear-gradient(180deg,color-mix(in srgb,var(--card) 92%,#fff),color-mix(in srgb,var(--card) 92%,#000));box-shadow:0 1px 2px rgba(0,0,0,.055),0 5px 14px rgba(0,0,0,.120)}
+.qr-chip:not(.act){background:linear-gradient(180deg,color-mix(in srgb,var(--card) 92%,#fff),color-mix(in srgb,var(--card) 92%,#000));box-shadow:0 1px 2px rgba(0,0,0,.055),0 2px 6px rgba(0,0,0,.07)}/* B31.1: світлий lift-drop .120→.07 (чіп у recess-таці — figure-ground несе западина, важкий власний drop = «висить над ямою»; device) */
 [data-theme="dark"] .qr-chip:not(.act),:root:not([data-theme="light"]) .qr-chip:not(.act){box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 1px 2px rgba(0,0,0,.027),0 5px 14px rgba(0,0,0,.060)}
 /* Batch 8h TAB3-VIEWPORT-FIT: при tight viewport (Safari toolbar активний, vh<720) зменшуємо розміри QR area щоб все вміщалось.
    visualViewport API tracking через JS додає body.tight-vh при необхідності. */
@@ -776,7 +785,7 @@ function out() { return S.outlet !== null ? sr().o[S.outlet] : null; }
 
 const ST_COL = {ok:'var(--ok)',warn:'var(--warn)',late:'var(--late)',crit:'var(--crit)'};
 // B30.1/B30.4 (wsd 10.6): build-константа. Усі версійні поверхні читають APP_BUILD, не хардкод. User-visible версія білда → About-шіт (A58, Фаза 4) — це і є коректна поверхня. Console-маркер прибрано (B30.4): на реальному PWA консоль невидима юзеру (нуль користі), а в прев'ю Claude будь-який console-вивід відкриває панель Console Messages. Окремий урок про відсутність console.info у сендбоксі — кандидат Cookbook A68.
-const APP_BUILD={batch:31,rev:0,phase:'2',date:'17.06.2026'}; // B31: chip-tray RECESS (--tray-* токен) + чіп dark топ-світло .060→.11. rev5=B30.5 (QRCode self-host). Build surface -> About sheet A58.
+const APP_BUILD={batch:31,rev:3,phase:'2',date:'18.06.2026'}; // B31.3: auto-dark gap фікс — хедер-контролі (.sr-pill/.icon-btn) + ph-banner переведено на media-correct (дебоз лише explicit-dark+auto-dark, auto-light не зачеплено). B31.2: статус-ряд нижня лінія на світлій →--border-2 (A39 спліт). B31.1: світлий чіп-drop .120→.07 + ph-banner dark DEBOZ-well + світла сепарація банер↔статус. B31: chip-tray RECESS + чіп dark топ-світло .11.
 const ST_LBL = {ok:'ОК',warn:'Перевірити',late:'Давно',crit:'Критично'};
 const ST_D   = {ok:'1–30 дн',warn:'31–60 дн',late:'61–120 дн',crit:'120+ дн'};
 // B30 (A65): GUID prefix-emphasis — перший блок (до першого дефіса) у .guid-pre (ink-2/600), решта muted. Формат: {XXXXXXXX-…}.
