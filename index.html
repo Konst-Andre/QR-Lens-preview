@@ -82,6 +82,8 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   --r:14px;--rs:10px;--rxs:6px;--sab:env(safe-area-inset-bottom,0px);
   --morph-dur:560ms;--menu-dur:360ms; /* B27 (A57): морф-іконка теми · дропдаун-пружина. Тема-незалежні → лише :root */
   --vt-dur:550ms;--vt-ease:cubic-bezier(.42,0,.42,1);--vt-x:50%;--vt-y:50%; /* B28 (VT-reveal): clip-коло перефарбу теми. 550≈--morph-dur(560) — зчеплення: морф іконки грає на живому DOM під VT-оверлеєм, доходять разом. origin=кнопка → x/y перезаписує JS із rect btnTheme; дефолт-центр як фолбек. */
+  /* B32 (Phase 3, A67-розширення card-select): функц.фідбек вибору картки (кільце+фон+rank) — швидкий 140ms. press-втиск — 80ms лінійно. Тема-незалежні. Жест-вистриб (950ms spring) живе у JS (WAAPI, не CSS-токен). */
+  --sel-dur:140ms;--sel-ease:cubic-bezier(.4,0,.2,1);--press-down:80ms;--press-scale:.96;
 }
 [data-theme="dark"]{
   --bg:#0a0e14;--bg-soft:#11161e;--card:#232a35;--card-2:#2b3340;
@@ -414,9 +416,14 @@ body.tab4-fused #ctx-layer{background:color-mix(in srgb,var(--bg-soft),var(--car
 .ctx-t{font-size:11px;color:var(--muted);flex:1}
 .ctx-c{font-size:11px;font-weight:700;color:var(--accent)}
 .ph-list{display:flex;flex-direction:column;gap:6px;padding:10px 16px}
-.ph-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh1);cursor:pointer;transition:border-color .12s,background .12s}
-.ph-card:active{background:var(--card-2);border-color:var(--border-2)}
-.ph-card.sel{border:1.5px solid var(--accent);background:var(--bg-soft)}
+.ph-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh1);cursor:pointer;position:relative;user-select:none;-webkit-user-select:none;transition:border-color var(--sel-dur) var(--sel-ease),background-color var(--sel-dur) var(--sel-ease),box-shadow var(--sel-dur) var(--sel-ease),transform var(--press-down) linear}/* B32 (Phase 3): position:relative під ::after-ring; transform-transition = press-down 80ms (повернення/вистриб через WAAPI playGesture) */
+#sh-eq-list .ph-card:active{background:var(--card-2);border-color:var(--border-2)}/* B32: :active-фон лишився ЛИШЕ для drill-down шіта (там нема scale-press). Tab-2 список = чистий scale-press (1:1 device-compare v2.1), без :active-bg що залипає при скролі (iOS). */
+/* B32 (Phase 3, A67): press-втиск — JS-клас .pressing тримає стиск через transition навіть коли палець уже відпустив (чистий :active непомітний на швидкий тап). Глибина 4% (scale .96), down 80ms лінійно. */
+.ph-card.pressing{transform:scale(var(--press-scale))}
+/* B32 (Phase 3): кільце вибору = pseudo-element opacity (НЕ border — міняв би геометрію +0.5px reflow; НЕ box-shadow:inset — paint щокадру). ::after composite-only (GPU) → кільце+фон+rank проявляються СИНХРОННО за 140ms. Device-locked compare v2.1. */
+.ph-card::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1.5px var(--accent);opacity:0;pointer-events:none;transition:opacity var(--sel-dur) var(--sel-ease)}
+.ph-card.sel::after{opacity:1}
+.ph-card.sel{background:var(--bg-soft)}/* B32: border БІЛЬШЕ не міняється на .sel (константний 1px → нуль зсуву); кільце несе ::after. Фон лишається (Konst: +фон+rank). */
 /* Batch 25.1 #1 SEL-WELL (dark-only): після +Lift --bg-soft(#11161e)≈--bg(#0a0e14) → обрана тонула, тримала лише рамка. Well пересаджено вище фону (−7.8 card / +10.6 bg), характер узгоджено зі світлою (там обрана теж втоплена). Світла B locked. A8: дуальний селектор > бази (0,2,0). */
 [data-theme="dark"] .ph-card.sel,:root:not([data-theme="light"]) .ph-card.sel{background:#1a212c}
 .ph-card-l{flex-shrink:0;display:flex;flex-direction:column;gap:5px}
@@ -430,8 +437,10 @@ body.tab4-fused #ctx-layer{background:color-mix(in srgb,var(--bg-soft),var(--car
 /* Batch 8g TAB2-CARD-COMPACT: dots переміщено в right column поряд з cnt — картка стиснута ~46% */
 .ph-card-dots-r{display:flex;gap:6px;align-items:center;margin-top:2px}
 /* Batch 8h TAB2-CARD-RANK: нумерація карток (порт .tt-rank з KPI Lens) — кругла 22×22 плашка з номером, при isSel — accent background + #fff */
-.ph-rank{width:22px;height:22px;border-radius:50%;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--muted);flex-shrink:0;transition:background .12s,color .12s}
+.ph-rank{width:22px;height:22px;border-radius:50%;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--muted);flex-shrink:0;transition:background var(--sel-dur) var(--sel-ease),color var(--sel-dur) var(--sel-ease)}/* B32: sel-dur токен (синхрон із кільцем+фоном) */
 .ph-card.sel .ph-rank{background:var(--accent);color:#fff}
+/* B32 (Phase 3): reduced-motion → миттєвий перефарб вибору + жоден WAAPI-жест (playGesture гардиться reduceOn() у JS). */
+@media(prefers-reduced-motion:reduce){.ph-card,.ph-card::after,.ph-rank{transition:none!important}}
 /* QR SCREEN */
 .qr-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding-bottom:var(--nav-h,64px)}/* B29.1 FIX: Tab3 не на .scroll-a (власний flex-лейаут qr-area+qr-chips) → овлерей-бар накрив припнутий .qr-chips. Кліренс --nav-h піднімає ряд капсул рівно над склом (як було над in-flow баром). */
 /* Batch 8i QR-AREA-DISTRIBUTE: center → space-between (name до верху, guid-box до низу, QR+badge+counter+dots розподілені посередині). padding-top 12→8 (менше повітря до ph-banner). */
@@ -785,7 +794,7 @@ function out() { return S.outlet !== null ? sr().o[S.outlet] : null; }
 
 const ST_COL = {ok:'var(--ok)',warn:'var(--warn)',late:'var(--late)',crit:'var(--crit)'};
 // B30.1/B30.4 (wsd 10.6): build-константа. Усі версійні поверхні читають APP_BUILD, не хардкод. User-visible версія білда → About-шіт (A58, Фаза 4) — це і є коректна поверхня. Console-маркер прибрано (B30.4): на реальному PWA консоль невидима юзеру (нуль користі), а в прев'ю Claude будь-який console-вивід відкриває панель Console Messages. Окремий урок про відсутність console.info у сендбоксі — кандидат Cookbook A68.
-const APP_BUILD={batch:31,rev:3,phase:'2',date:'18.06.2026'}; // B31.3: auto-dark gap фікс — хедер-контролі (.sr-pill/.icon-btn) + ph-banner переведено на media-correct (дебоз лише explicit-dark+auto-dark, auto-light не зачеплено). B31.2: статус-ряд нижня лінія на світлій →--border-2 (A39 спліт). B31.1: світлий чіп-drop .120→.07 + ph-banner dark DEBOZ-well + світла сепарація банер↔статус. B31: chip-tray RECESS + чіп dark топ-світло .11.
+const APP_BUILD={batch:32,rev:1,phase:'3',date:'19.06.2026'}; // B32 (Phase 3): анім-вибір картки Tab-2 — persistent DOM (renderOutlets без rebuild на вибір, sig-guard) + pseudo-opacity ring (composite) + фон+rank на .sel + WAAPI «один жест» (depth .96→over 1.045@70%→settle, 950ms Пружна). press-втиск 80ms, sel-dur 140ms, :active звужено до drill-down шіта, reduced-motion гард. Device re-test pending. ───── B31.3: auto-dark gap фікс — хедер-контролі (.sr-pill/.icon-btn) + ph-banner переведено на media-correct (дебоз лише explicit-dark+auto-dark, auto-light не зачеплено). B31.2: статус-ряд нижня лінія на світлій →--border-2 (A39 спліт). B31.1: світлий чіп-drop .120→.07 + ph-banner dark DEBOZ-well + світла сепарація банер↔статус. B31: chip-tray RECESS + чіп dark топ-світло .11.
 const ST_LBL = {ok:'ОК',warn:'Перевірити',late:'Давно',crit:'Критично'};
 const ST_D   = {ok:'1–30 дн',warn:'31–60 дн',late:'61–120 дн',crit:'120+ дн'};
 // B30 (A65): GUID prefix-emphasis — перший блок (до першого дефіса) у .guid-pre (ink-2/600), решта muted. Формат: {XXXXXXXX-…}.
@@ -1065,6 +1074,17 @@ function renderPharmacies(){
   if(q) outs=outs.filter(o=>o.a.toLowerCase().includes(q)||o.net.toLowerCase().includes(q)||o.city.toLowerCase().includes(q));
   outs.sort((a,b)=>(b.c+b.l+b.w)-(a.c+a.l+a.w)||b.i.length-a.i.length);
 
+  const list=document.getElementById('ph-list');
+  // B32 (Phase 3, persistent DOM): сигнатура набору/порядку (БЕЗ S.outlet). Якщо не змінилась і картки вже є —
+  // змінився ЛИШЕ вибір → НЕ перебудовуємо innerHTML (rebuild знищував би DOM → снап замість transition, корінь A54-урок-3),
+  // лише тогл .sel на живих вузлах. Кільце+фон+rank проявляються через CSS-transition (140ms); вистриб — playCardGesture.
+  const sig=[S.sr,S.fNet,S.fCity,S.fSt.join(','),S.phSrch].join('|');
+  if(list._phSig===sig && list.querySelector('.ph-card')){
+    list.querySelectorAll('.ph-card').forEach(c=>c.classList.toggle('sel',+c.dataset.idx===S.outlet));
+    return;
+  }
+  list._phSig=sig;
+
   const hasF=S.fNet!=='all'||S.fCity!=='all'||S.fSt.length>0;
   document.getElementById('ph-flt-btn').classList.toggle('on',hasF);
   // Counter relocated to search placeholder (Batch 8b) — flt-button on-state shows filter active
@@ -1074,13 +1094,14 @@ function renderPharmacies(){
     inp.placeholder = `Адреса, мережа · ${d.o.length} аптек`;
   }
 
-  document.getElementById('ph-list').innerHTML=outs.map((o,i)=>{
+  list.innerHTML=outs.map((o,i)=>{
     const isSel=S.outlet===o.idx;
     const dots=[{v:o.ok,st:'ok'},{v:o.w,st:'warn'},{v:o.l,st:'late'},{v:o.c,st:'crit'}]
       .filter(x=>x.v>0)
       .map(x=>`<div class="ph-dot-it"><div class="ph-dot" style="background:var(--${x.st})"></div><span style="color:var(--${x.st})">${x.v}</span></div>`)
       .join('');
-    return `<div class="ph-card${isSel?' sel':''}" onclick="selectOutlet(${o.idx})">
+    // B32 (Phase 3): вибір через делегований pointerup на #ph-list (нижче), НЕ інлайн onclick → data-idx несе індекс.
+    return `<div class="ph-card${isSel?' sel':''}" data-idx="${o.idx}">
       <div class="ph-rank">${i+1}</div>
       <div class="ph-card-i">
         <div class="ph-card-addr">${o.a}</div>
@@ -1778,6 +1799,29 @@ document.querySelectorAll('.scroll-a').forEach(el=>{
   let cur=null; const rel=()=>{ if(cur){cur.classList.remove('pressing');cur=null;} };
   row.addEventListener('pointerdown',e=>{const c=e.target.closest('.qr-chip');if(!c)return;cur=c;c.classList.add('pressing');});
   row.addEventListener('pointerup',rel); row.addEventListener('pointercancel',rel); row.addEventListener('pointerleave',rel);
+})();
+
+// ── CARD-SELECT GESTURE ── B32 (Phase 3, A67-розширення / WAAPI «один жест»): велика картка = важча інерція → довша тривалість + помірний overshoot + spring. depth→overshoot→settle ОДНИМ арком (модель A; B «окремий pop» відкинуто — на великій картці два беати читаються як смик). 950ms РЕАЛЬНІ (slow-mo множника в проді НЕМА — лише тестова лупа). reduceOn()→снап без жесту. Device-locked compare v2.1.
+function playCardGesture(card){
+  if(!card||reduceOn()||typeof card.animate!=='function')return;
+  if(card._a)card._a.cancel();
+  card._a=card.animate(
+    [{transform:'scale(.96)',offset:0},      // глибина втиску 4%
+     {transform:'scale(1.045)',offset:.7},   // вистриб +4.5% на піку 70%
+     {transform:'scale(1)',offset:1}],       // осідання
+    {duration:950,easing:'cubic-bezier(.34,1.56,.64,1)',fill:'none'}); // Пружна
+}
+
+// ── CARD PRESS+SELECT ── B32 (Phase 3, A67): делегований press+вибір на ПОСТІЙНИЙ #ph-list (переживає innerHTML-rebuild при зміні фільтра — A54/14.13). pointerdown→.pressing (втиск 80ms); pointerup→зняти .pressing + selectOutlet (тогл .sel БЕЗ rebuild, кільце+фон+rank 140ms) + playCardGesture (вистриб 950ms — функц.фідбек швидкий, «характер» зверху не-блокуючий). pointercancel/leave→зняти (список вертикально скролиться). _pressBound-гард (wsd 10.2). Вибір через делегацію — інлайн onclick прибрано з картки (1:1 device-compare v2.1).
+(function(){
+  const list=document.getElementById('ph-list'); if(!list||list._pressBound)return; list._pressBound=true;
+  let cur=null; const rel=()=>{ if(cur){cur.classList.remove('pressing');cur=null;} };
+  list.addEventListener('pointerdown',e=>{const c=e.target.closest('.ph-card');if(!c)return;cur=c;c.classList.add('pressing');});
+  list.addEventListener('pointerup',e=>{
+    const c=e.target.closest('.ph-card'); rel();
+    if(c){ const i=+c.dataset.idx; if(!Number.isNaN(i)){ selectOutlet(i); playCardGesture(c); } }
+  });
+  list.addEventListener('pointercancel',rel); list.addEventListener('pointerleave',rel);
 })();
 
 // ── INIT ──
