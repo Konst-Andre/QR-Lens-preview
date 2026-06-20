@@ -84,6 +84,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   --vt-dur:550ms;--vt-ease:cubic-bezier(.42,0,.42,1);--vt-x:50%;--vt-y:50%; /* B28 (VT-reveal): clip-коло перефарбу теми. 550≈--morph-dur(560) — зчеплення: морф іконки грає на живому DOM під VT-оверлеєм, доходять разом. origin=кнопка → x/y перезаписує JS із rect btnTheme; дефолт-центр як фолбек. */
   /* B32 (Phase 3, A67-розширення card-select): функц.фідбек вибору картки (кільце+фон+rank) — швидкий 140ms. press-втиск — 80ms лінійно. Тема-незалежні. Жест-вистриб (950ms spring) живе у JS (WAAPI, не CSS-токен). */
   --sel-dur:140ms;--sel-ease:cubic-bezier(.4,0,.2,1);--press-down:80ms;--press-scale:.96;
+  --eq-press-scale:.92;/* B34 F: глибина втиску eq-card (велика, недовго видима → глибше за .96 Tab-2). Вистриб 1.07/800ms spring у JS playEqGesture. */
 }
 [data-theme="dark"]{
   --bg:#0a0e14;--bg-soft:#11161e;--card:#232a35;--card-2:#2b3340;
@@ -295,8 +296,10 @@ body.tab4-fused #ctx-layer{background:color-mix(in srgb,var(--bg-soft),var(--car
 @media(prefers-color-scheme:light){:root:not([data-theme="dark"]) .ctx-layer{border-bottom-color:var(--border-2)}}
 /* Batch 9 EQ-CARD-V2: compact ~75-80px, 2-row horizontal (top: name+count+chev; bot: bar+dots+meta) */
 .eq-cards{display:flex;flex-direction:column;gap:8px;padding:10px 16px}
-.eq-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:9px 12px;box-shadow:var(--sh1);cursor:pointer;transition:border-color .12s,background .12s;position:relative;overflow:hidden}
-.eq-card:active{background:var(--card-2);border-color:var(--border-2)}
+.eq-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:9px 12px;box-shadow:var(--sh1);cursor:pointer;transition:border-color .12s,background .12s,transform var(--press-down) linear;position:relative;overflow:hidden}
+/* B34 F (A67.1-похідна): :active bg/border ПРИБРАНО (sticky-:active при iOS-скролі, як у Tab-2 ph-card B32 р.423). Фідбек = JS-клас .pressing (втиск 80ms .92) + WAAPI вистриб 1.07/800/spring (playEqGesture на pointerup). */
+.eq-card.pressing{transform:scale(var(--eq-press-scale))}
+@media(prefers-reduced-motion:reduce){.eq-card{transition:border-color .12s,background .12s}.eq-card.pressing{transform:none}}
 .eq-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
 .eq-card-name{font-size:13px;font-weight:700;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .eq-card-right{display:flex;align-items:baseline;gap:3px;flex-shrink:0}
@@ -804,7 +807,7 @@ function out() { return S.outlet !== null ? sr().o[S.outlet] : null; }
 
 const ST_COL = {ok:'var(--ok)',warn:'var(--warn)',late:'var(--late)',crit:'var(--crit)'};
 // B30.1/B30.4 (wsd 10.6): build-константа. Усі версійні поверхні читають APP_BUILD, не хардкод. User-visible версія білда → About-шіт (A58, Фаза 4) — це і є коректна поверхня. Console-маркер прибрано (B30.4): на реальному PWA консоль невидима юзеру (нуль користі), а в прев'ю Claude будь-який console-вивід відкриває панель Console Messages. Окремий урок про відсутність console.info у сендбоксі — кандидат Cookbook A68.
-const APP_BUILD={batch:32,rev:1,phase:'3',date:'19.06.2026'}; // B32 (Phase 3): анім-вибір картки Tab-2 — persistent DOM (renderOutlets без rebuild на вибір, sig-guard) + pseudo-opacity ring (composite) + фон+rank на .sel + WAAPI «один жест» (depth .96→over 1.045@70%→settle, 950ms Пружна). press-втиск 80ms, sel-dur 140ms, :active звужено до drill-down шіта, reduced-motion гард. Device re-test pending. ───── B31.3: auto-dark gap фікс — хедер-контролі (.sr-pill/.icon-btn) + ph-banner переведено на media-correct (дебоз лише explicit-dark+auto-dark, auto-light не зачеплено). B31.2: статус-ряд нижня лінія на світлій →--border-2 (A39 спліт). B31.1: світлий чіп-drop .120→.07 + ph-banner dark DEBOZ-well + світла сепарація банер↔статус. B31: chip-tray RECESS + чіп dark топ-світло .11.
+const APP_BUILD={batch:34,rev:1,phase:'3',date:'20.06.2026'}; // B34 rev1 (F+G): F — eq-card floating-press (.pressing .92 80ms + WAAPI playEqGesture 1.07@70%/800ms spring; :active bg/border прибрано; делегація #eq-list). G — drill-шіт row-stagger (staggerRows generic; sh-eq 120/800/off160/dist10, фільтр рефакторено на той же helper 90/780/dist16). E (банер HYBRID) — pending окремим інкрементом rev2. ───── B32 (Phase 3): анім-вибір картки Tab-2 — persistent DOM (renderOutlets без rebuild на вибір, sig-guard) + pseudo-opacity ring (composite) + фон+rank на .sel + WAAPI «один жест» (depth .96→over 1.045@70%→settle, 950ms Пружна). press-втиск 80ms, sel-dur 140ms, :active звужено до drill-down шіта, reduced-motion гард. Device re-test pending. ───── B31.3: auto-dark gap фікс — хедер-контролі (.sr-pill/.icon-btn) + ph-banner переведено на media-correct (дебоз лише explicit-dark+auto-dark, auto-light не зачеплено). B31.2: статус-ряд нижня лінія на світлій →--border-2 (A39 спліт). B31.1: світлий чіп-drop .120→.07 + ph-banner dark DEBOZ-well + світла сепарація банер↔статус. B31: chip-tray RECESS + чіп dark топ-світло .11.
 const ST_LBL = {ok:'ОК',warn:'Перевірити',late:'Давно',crit:'Критично'};
 const ST_D   = {ok:'1–30 дн',warn:'31–60 дн',late:'61–120 дн',crit:'120+ дн'};
 // B30 (A65): GUID prefix-emphasis — перший блок (до першого дефіса) у .guid-pre (ink-2/600), решта muted. Формат: {XXXXXXXX-…}.
@@ -1601,18 +1604,26 @@ function resetEqFlt(){S.eqSrch='';S.eqFBrand='all';S.eqFSt=[];document.getElemen
 
 // ── B33 FILTER CLUSTER (compare-locked) ──
 // D: stagger появи вмісту шіта (крок 90 · offset 16px · 780ms · iOS). Структурний reveal → ease, НЕ пружина (A57). Лише на ПЕРШЕ відкриття (не на ре-рендер з тапу чіпа). reduceOn-гард.
-function staggerSheet(id){
-  if(reduceOn())return;
-  const box=document.querySelector('#'+id+' .sh-box');if(!box)return;
-  const kids=box.querySelectorAll('.sh-sec,.chip-row,.sh-reset');
-  const STEP=90,OFF=16,DUR=780,EASE='cubic-bezier(.32,.72,0,1)';
-  kids.forEach(k=>{k.style.transition='none';k.style.opacity='0';k.style.transform='translateY('+OFF+'px)';});
+// B34 G: generic row-stagger (step=крок затримки, off=стартова затримка, dur=тривалість рядка, dist=translateY px). Прибирає інлайн-стилі ПІСЛЯ завершення → елемент вертається під контроль CSS (важливо для .ph-card з :active/press, інакше інлайн-transition залипає й :active-фідбек стає миттєвим).
+function staggerRows(nodes,o){
+  if(reduceOn()||!nodes||!nodes.length)return;
+  nodes=[...nodes];
+  const STEP=o.step,OFF=o.off||0,DUR=o.dur,DIST=o.dist,EASE=o.ease||'cubic-bezier(.32,.72,0,1)';
+  nodes.forEach(k=>{k.style.transition='none';k.style.opacity='0';k.style.transform='translateY('+DIST+'px)';});
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    kids.forEach((k,i)=>{
-      k.style.transition='opacity '+DUR+'ms '+EASE+' '+(i*STEP)+'ms,transform '+DUR+'ms '+EASE+' '+(i*STEP)+'ms';
+    nodes.forEach((k,i)=>{
+      const d=OFF+i*STEP;
+      k.style.transition='opacity '+DUR+'ms '+EASE+' '+d+'ms,transform '+DUR+'ms '+EASE+' '+d+'ms';
       k.style.opacity='1';k.style.transform='translateY(0)';
     });
+    const total=OFF+(nodes.length-1)*STEP+DUR+50;
+    setTimeout(()=>nodes.forEach(k=>{k.style.transition='';k.style.opacity='';k.style.transform='';}),total);
   }));
+}
+// Фільтр-шіт (значення B33, без зміни): крок 90, дистанція 16px, 780ms, без стартової затримки.
+function staggerSheet(id){
+  const box=document.querySelector('#'+id+' .sh-box');if(!box)return;
+  staggerRows(box.querySelectorAll('.sh-sec,.chip-row,.sh-reset'),{step:90,off:0,dur:780,dist:16});
 }
 // B: reset дизейб при 0 активних фільтрів (стан 1:1 з hasF р.~1088 / eqHasF)
 function updatePhReset(){const b=document.getElementById('ph-reset');if(b)b.disabled=!(S.fNet!=='all'||S.fCity!=='all'||S.fSt.length>0);}
@@ -1680,6 +1691,8 @@ function openEqDetail(ti){
     </div>`;
   }).join('');
   openSheet('sh-eq',()=>closeSheet('sh-eq'));
+  // B34 G: каскад появи рядків drill-шіта (повільніший за фільтр — на багатьох рядках швидкий stagger читається як глюк рендера; навмисність читається на повільнішому). Старт 160ms після відкриття (sheet-slide A18 260ms іде паралельно). Значення ЕФЕКТИВНІ (60/400/80 ×2 — slow-mo×bake).
+  staggerRows(document.querySelectorAll('#sh-eq-list .ph-card'),{step:120,off:160,dur:800,dist:10});
 }
 
 // ── SHEET HELPERS ──
@@ -1886,7 +1899,27 @@ function playCardGesture(card){
   list.addEventListener('pointercancel',rel); list.addEventListener('pointerleave',rel);
 })();
 
-// ── INIT ──
+// ── EQ-CARD GESTURE (F) ── B34 (A67.1-похідна): велика картка Tab-4, видима недовго (шіт/таб одразу накриває) → глибше + емоційніше + швидше за Tab-2-вибір. depth .92 → overshoot 1.07@70% → settle, 800ms spring ОДНИМ арком. Хвіст дограється під шітом (non-blocking «характер»). reduceOn()→без жесту. Контекст-justified exception до A67.1-канону (.96/+4.5%/950) — як flt-btn .90.
+function playEqGesture(card){
+  if(!card||reduceOn()||typeof card.animate!=='function')return;
+  if(card._a)card._a.cancel();
+  card._a=card.animate(
+    [{transform:'scale(.92)',offset:0},
+     {transform:'scale(1.07)',offset:.7},
+     {transform:'scale(1)',offset:1}],
+    {duration:800,easing:'cubic-bezier(.34,1.56,.64,1)',fill:'none'});
+}
+// Делегований press на ПОСТІЙНИЙ #eq-list (переживає innerHTML-rebuild renderEquipment — A54/14.13). pointerdown→.pressing (втиск 80ms .92); pointerup→зняти+playEqGesture (вистриб 800ms). cancel/leave→зняти (список скролиться). _pressBound-гард (10.2). Дія (goToQR/openEqDetail) лишається на інлайн-onclick — fire на click після pointerup.
+(function(){
+  const list=document.getElementById('eq-list'); if(!list||list._pressBound)return; list._pressBound=true;
+  let cur=null; const rel=()=>{ if(cur){cur.classList.remove('pressing');cur=null;} };
+  list.addEventListener('pointerdown',e=>{const c=e.target.closest('.eq-card');if(!c)return;cur=c;c.classList.add('pressing');});
+  list.addEventListener('pointerup',e=>{
+    const c=e.target.closest('.eq-card'); rel();
+    if(c)playEqGesture(c);
+  });
+  list.addEventListener('pointercancel',rel); list.addEventListener('pointerleave',rel);
+})();
 function render(){renderHeader();renderBanner();renderCtxLayer();renderTab();}
 render();
 
