@@ -404,9 +404,12 @@ body.tab4-fused #ctx-layer{background:color-mix(in srgb,var(--bg-soft),var(--car
 .srch-clr[hidden]{display:none}/* A36: .srch-clr має display:flex → рівна специфічність з UA [hidden] → підняти під клас */
 .srch-clr svg{width:13px;height:13px}
 .srch-clr:active{background:var(--border-2)}
-.flt-btn{display:flex;align-items:center;gap:5px;padding:8px 12px;background:var(--well-bg);box-shadow:var(--well-sh);border:1px solid var(--border);border-radius:var(--rs);color:var(--ink-2);font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;transition:all .12s;flex-shrink:0}/* B30 (A65): --band→--well — fix DEBOSS (як .ph-srch). Tab-2 І Tab-4. */
-.flt-btn:active{background:var(--border)}
-.flt-btn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.flt-btn{position:relative;display:flex;align-items:center;gap:5px;padding:8px 12px;background:var(--well-bg);box-shadow:var(--well-sh);border:1px solid var(--border);border-radius:var(--rs);color:var(--ink-2);font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;transition:transform 280ms cubic-bezier(.34,1.5,.64,1),background-color .12s,color .12s;flex-shrink:0}/* B30 (A65): --band→--well DEBOSS. B33 (A67/A67.1): transition:all→transform (press-spring) + ON-кільце ::after (реюз картки); прес .90 контекстний — шіт накриває кнопку ~260ms, глибше щоб жест зчитався (НЕ загальне значення кнопки). */
+.flt-btn::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1.5px var(--accent);opacity:0;pointer-events:none;transition:opacity var(--sel-dur) var(--sel-ease)}
+.flt-btn.on{color:var(--accent);background:var(--accent-soft)}/* B33: border-color swap прибрано — край несе кільце (1:1 з ph-card B32, нуль зсуву) */
+.flt-btn.on::after{opacity:1}
+.flt-btn.pressing{transform:scale(.90);transition-duration:80ms}
+@media(prefers-reduced-motion:reduce){.flt-btn{transition:none}.flt-btn.pressing{transform:none}}
 /* Batch 11 EQ-FILTER-SUMMARY: лічильник результатів фільтра в Tab 4 cross-SR */
 /* Batch 12 EQ-FS-V2: + border-left accent + accent-кольорові числа через .eq-fs-n */
 .eq-filter-summary{margin:0 16px;padding:2px 0 6px 10px;border-left:2px solid var(--accent);font-size:11px;color:var(--muted);font-weight:600;display:none}
@@ -521,11 +524,18 @@ body.roomy-vh .qr-area{gap:12px}
 .sh-title{font-size:15px;font-weight:700}
 .sh-x{width:28px;height:28px;border-radius:50%;background:var(--bg-soft);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--ink-2);cursor:pointer}
 .sh-sec{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:12px 16px 6px}
-.chip-row{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px}
-.chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:var(--card);color:var(--ink-2);transition:all .12s}
-.chip.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
-.sh-reset{display:block;width:calc(100% - 32px);margin:16px 16px 0;padding:11px;border-radius:var(--rs);border:1px solid var(--border);background:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer}
-.sh-reset:active{background:var(--bg-soft)}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin:0 16px 8px;padding:8px 10px;background:var(--tray-bg);box-shadow:var(--tray-sh);border-radius:12px}/* B33 (A): recess-таця під чіпи (A65 контейнер=well, чіпи випирають; токени --tray-* per-theme) */
+.chip{padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:linear-gradient(180deg,color-mix(in srgb,var(--card) 92%,#fff),color-mix(in srgb,var(--card) 92%,#000));color:var(--ink-2);box-shadow:0 1px 2px rgba(0,0,0,.055),0 2px 6px rgba(0,0,0,.07);transition:all .12s}/* B33 (A/A66): elevation з ВУЗЬКИМ drop (.07) — recess-виняток (чіп у таці) */
+[data-theme="dark"] .chip{box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 1px 2px rgba(0,0,0,.027),0 4px 10px rgba(0,0,0,.05)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip{box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 1px 2px rgba(0,0,0,.027),0 4px 10px rgba(0,0,0,.05)}}
+.chip.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);box-shadow:0 1px 2px rgba(42,140,132,.12),0 3px 8px rgba(42,140,132,.14)}/* B33: активний = teal + об'єм (не пласка заливка) */
+[data-theme="dark"] .chip.on{box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 6px rgba(0,0,0,.22)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.on{box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 6px rgba(0,0,0,.22)}}
+.sh-reset{display:block;width:calc(100% - 32px);margin:16px 16px 0;padding:11px;border-radius:var(--rs);border:1.5px solid var(--border-2);background:var(--card-2);color:var(--ink-2);font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(20,40,35,.05),0 3px 8px rgba(20,40,35,.07);transition:transform .12s,opacity .12s}/* B33 (B): ghost→border2+заливка (elevation-мова; A65 кнопка≠well) */
+[data-theme="dark"] .sh-reset{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 6px rgba(0,0,0,.22)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .sh-reset{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 6px rgba(0,0,0,.22)}}
+.sh-reset:active:not(:disabled){transform:scale(.985)}
+.sh-reset:disabled{opacity:.42;cursor:default;box-shadow:none;pointer-events:none}/* B33 (B): дизейбл при 0 активних фільтрів */
 .sr-opt{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;color:var(--ink-2)}
 .sr-opt:last-child{border-bottom:none}
 .sr-opt:active{background:var(--bg-soft)}
@@ -737,7 +747,7 @@ body.roomy-vh .qr-area{gap:12px}
     <div class="sh-sec">Мережа</div><div class="chip-row" id="sh-flt-nets"></div>
     <div class="sh-sec">Місто</div><div class="chip-row" id="sh-flt-cities"></div>
     <div class="sh-sec">Статус</div><div class="chip-row" id="sh-flt-status"></div>
-    <button class="sh-reset" onclick="resetFlt()">Скинути фільтри</button>
+    <button class="sh-reset" id="ph-reset" onclick="resetFlt()">Скинути фільтри</button>
   </div>
 </div>
 
@@ -757,7 +767,7 @@ body.roomy-vh .qr-area{gap:12px}
     <div class="sh-head"><span class="sh-title">Фільтр обладнання</span><button class="sh-x" onclick="closeSheet('sh-eq-flt')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     <div class="sh-sec">Бренд</div><div class="chip-row" id="sh-eq-brands"></div>
     <div class="sh-sec">Критичність</div><div class="chip-row" id="sh-eq-status"></div>
-    <button class="sh-reset" onclick="resetEqFlt()">Скинути фільтри</button>
+    <button class="sh-reset" id="eq-reset" onclick="resetEqFlt()">Скинути фільтри</button>
   </div>
 </div>
 
@@ -822,11 +832,13 @@ function renderHeader(){
 }
 
 // ── BANNER ──
+let _bnrShown=false;
 function renderBanner(){
   const el=document.getElementById('ph-banner');
   const o=out();
   // Batch 8i TAB2-FILTER-AIR: body.has-banner стан для CSS-aware filter-row spacing
-  if(!o){el.style.display='none';document.body.classList.remove('has-banner');return;}
+  // E (B33): банер у DOM, анім max-height+opacity+transform (НЕ display-снап). Зсув layout 80→340ms завершує ДО піку pop 665ms → pop цвіте на стабільному layout (A57: структурний reveal → ease, не пружина).
+  if(!o){if(_bnrShown&&!reduceOn()){bnrOut(el);}else{el.style.display='none';}_bnrShown=false;document.body.classList.remove('has-banner');return;}
   el.style.display='flex';
   document.body.classList.add('has-banner');
   el.innerHTML=`
@@ -836,6 +848,24 @@ function renderBanner(){
       <div class="ph-b-meta">${o.net||''}${o.city?' · '+o.city:''} · ${o.i.length} одиниць</div>
     </div>
     <button class="ph-b-x" onclick="selectOutlet(null)">×</button>`;
+  if(!_bnrShown){_bnrShown=true;bnrIn(el);}/* E: анім лише на перехід hidden→shown (не ре-анім при зміні аптеки/фільтра) */
+}
+function bnrIn(el){
+  if(reduceOn()){el.style.maxHeight='';el.style.opacity='';el.style.transform='';el.style.overflow='';return;}
+  el.style.overflow='hidden';el.style.transition='none';
+  el.style.opacity='0';el.style.transform='translateY(-6px)';el.style.maxHeight='0px';
+  void el.offsetHeight;const h=el.scrollHeight;
+  setTimeout(()=>{
+    el.style.transition='max-height 260ms cubic-bezier(.2,.7,.3,1),opacity 260ms cubic-bezier(.2,.7,.3,1),transform 260ms cubic-bezier(.2,.7,.3,1)';
+    el.style.maxHeight=h+'px';el.style.opacity='1';el.style.transform='translateY(0)';
+    setTimeout(()=>{el.style.maxHeight='';el.style.overflow='';el.style.transition='';},290);
+  },80);/* offset 80ms = один press-down (банер входить коли прес дотиснувся, pop починає підйом) */
+}
+function bnrOut(el){
+  const h=el.scrollHeight;el.style.overflow='hidden';el.style.maxHeight=h+'px';void el.offsetHeight;
+  el.style.transition='max-height 220ms ease,opacity 220ms ease';
+  el.style.maxHeight='0px';el.style.opacity='0';
+  setTimeout(()=>{el.style.display='none';el.style.maxHeight='';el.style.opacity='';el.style.overflow='';el.style.transition='';},230);
 }
 
 // ── TAB 1: OVERVIEW ──
@@ -1526,8 +1556,8 @@ function selectOutlet(i){
 }
 
 // ── PH FILTER ──
-document.getElementById('ph-flt-btn').addEventListener('click',openPhFlt);
-function openPhFlt(){
+document.getElementById('ph-flt-btn').addEventListener('click',()=>openPhFlt(true));
+function openPhFlt(firstOpen){
   const d=sr();
   const nets=[...new Set(d.o.map(o=>o.net).filter(Boolean))].sort();
   const cities=[...new Set(d.o.map(o=>o.city).filter(Boolean))].sort();
@@ -1541,6 +1571,8 @@ function openPhFlt(){
     [{id:'crit',c:'crit',l:'Критично'},{id:'late',c:'late',l:'Давно'},{id:'warn',c:'warn',l:'Перевірити'}].map(s=>
       `<div class="chip${S.fSt.includes(s.id)?' on':''}" onclick="togFSt('${s.id}')"><span class="chip-dot" style="background:var(--${s.c})"></span>${s.l}</div>`).join('');
   openSheet('sh-flt',()=>closeSheet('sh-flt'));
+  updatePhReset();
+  if(firstOpen)staggerSheet('sh-flt');
 }
 function setFNet(v){S.fNet=v;renderPharmacies();openPhFlt();}
 function setFCity(v){S.fCity=v;renderPharmacies();openPhFlt();}
@@ -1548,8 +1580,8 @@ function togFSt(v){const i=S.fSt.indexOf(v);if(i>=0)S.fSt.splice(i,1);else S.fSt
 function resetFlt(){S.fNet='all';S.fCity='all';S.fSt=[];renderPharmacies();closeSheet('sh-flt');}
 
 // ── Batch 9 EQ FILTER ──
-document.getElementById('eq-flt-btn').addEventListener('click',openEqFlt);
-function openEqFlt(){
+document.getElementById('eq-flt-btn').addEventListener('click',()=>openEqFlt(true));
+function openEqFlt(firstOpen){
   // Batch 21: бренди в порядку КПК (Strepsils → Nurofen variants → Gaviscon → Evitest → Durex → інше)
   const present=[...new Set(_eqTypes.map(t=>t.brand))].sort((a,b)=>{
     return eqBrandOrder(a)-eqBrandOrder(b);
@@ -1560,10 +1592,40 @@ function openEqFlt(){
     [{id:'crit',c:'crit',l:'Критично'},{id:'late',c:'late',l:'Давно'},{id:'warn',c:'warn',l:'Перевірити'},{id:'ok',c:'ok',l:'ОК'}].map(s=>
       `<div class="chip${S.eqFSt.includes(s.id)?' on':''}" onclick="togEqFSt('${s.id}')"><span class="chip-dot" style="background:var(--${s.c})"></span>${s.l}</div>`).join('');
   openSheet('sh-eq-flt',()=>closeSheet('sh-eq-flt'));
+  updateEqReset();
+  if(firstOpen)staggerSheet('sh-eq-flt');
 }
 function setEqFBrand(v){S.eqFBrand=v;renderEquipment();openEqFlt();}
 function togEqFSt(v){const i=S.eqFSt.indexOf(v);if(i>=0)S.eqFSt.splice(i,1);else S.eqFSt.push(v);renderEquipment();openEqFlt();}
 function resetEqFlt(){S.eqSrch='';S.eqFBrand='all';S.eqFSt=[];document.getElementById('eq-srch-inp').value='';document.getElementById('eq-srch-clr').hidden=true;renderEquipment();closeSheet('sh-eq-flt');}
+
+// ── B33 FILTER CLUSTER (compare-locked) ──
+// D: stagger появи вмісту шіта (крок 90 · offset 16px · 780ms · iOS). Структурний reveal → ease, НЕ пружина (A57). Лише на ПЕРШЕ відкриття (не на ре-рендер з тапу чіпа). reduceOn-гард.
+function staggerSheet(id){
+  if(reduceOn())return;
+  const box=document.querySelector('#'+id+' .sh-box');if(!box)return;
+  const kids=box.querySelectorAll('.sh-sec,.chip-row,.sh-reset');
+  const STEP=90,OFF=16,DUR=780,EASE='cubic-bezier(.32,.72,0,1)';
+  kids.forEach(k=>{k.style.transition='none';k.style.opacity='0';k.style.transform='translateY('+OFF+'px)';});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    kids.forEach((k,i)=>{
+      k.style.transition='opacity '+DUR+'ms '+EASE+' '+(i*STEP)+'ms,transform '+DUR+'ms '+EASE+' '+(i*STEP)+'ms';
+      k.style.opacity='1';k.style.transform='translateY(0)';
+    });
+  }));
+}
+// B: reset дизейб при 0 активних фільтрів (стан 1:1 з hasF р.~1088 / eqHasF)
+function updatePhReset(){const b=document.getElementById('ph-reset');if(b)b.disabled=!(S.fNet!=='all'||S.fCity!=='all'||S.fSt.length>0);}
+function updateEqReset(){const b=document.getElementById('eq-reset');if(b)b.disabled=!(S.eqFBrand!=='all'||S.eqFSt.length>0);}
+// C: прес-фідбек flt-btn (.pressing scale .90; A67 тір чіпа, контекст-глибше). _pb-гард (10.2).
+function bindPress(btn){
+  if(!btn||btn._pb)return;btn._pb=1;let on=false;
+  btn.addEventListener('pointerdown',()=>{btn.classList.add('pressing');on=true;});
+  const rel=()=>{if(on){btn.classList.remove('pressing');on=false;}};
+  btn.addEventListener('pointerup',rel);btn.addEventListener('pointercancel',rel);btn.addEventListener('pointerleave',rel);
+}
+bindPress(document.getElementById('ph-flt-btn'));
+bindPress(document.getElementById('eq-flt-btn'));
 
 // ── EQ DETAIL ──
 // Batch 10 EQ-DETAIL-AGG: aggregate per pharmacy (як Tab 2 ph-card pattern).
