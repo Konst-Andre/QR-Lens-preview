@@ -223,11 +223,14 @@ button{font-family:inherit;border:none;cursor:pointer;background:none;color:inhe
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
 /* BANNER */
 /* Batch 8h TAB2-AIR-TOP: padding-top збільшено з 6→8px для air між app-bar і ph-banner */
-#ph-banner{overflow:hidden;flex-shrink:0}/* B34 E (HYBRID reveal): #ph-banner = клип-слот (overflow:hidden), порожній/прозорий; .ph-b-in усередині translateY(-100%→0) = шторка. Візуали перенесено в .ph-b-in (їде як єдиний блок). */
-.ph-b-in{display:flex;align-items:center;gap:8px;padding:8px 12px 7px;background:var(--band);box-shadow:var(--band-sh);border-bottom:1px solid var(--border);border-left:4px solid var(--accent)}/* B34 E: візуальний шар банера (колишній #ph-banner). Batch 25.2: band Lift/Well через --band; rail 4px. */
-/* B31.1 (A65/A39 dark-фікс): сирий --band-sh на темній = світло ЗВЕРХУ = ембоз → банер читався пласко й чуже vs дебоз-контролі над ним + well-версія світлої (A39 розбіжність характеру по темах). Flip → DEBOZ-well: тінь зверху(.30)+світло знизу(.070, device — підсвічує штрих-пунктир Tab-4 не забиваючи) + втоплений bg. Скоуп лише #ph-banner; --band/--band-sh цілі (контролі мають свій оверрайд р.165). Both explicit-dark + auto-dark. */
-[data-theme="dark"] #ph-banner .ph-b-in{background:color-mix(in srgb,var(--bg-soft) 70%,var(--card));box-shadow:inset 0 1.5px 2px rgba(0,0,0,.30),inset 0 -1px 0 rgba(255,255,255,.07)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) #ph-banner .ph-b-in{background:color-mix(in srgb,var(--bg-soft) 70%,var(--card));box-shadow:inset 0 1.5px 2px rgba(0,0,0,.30),inset 0 -1px 0 rgba(255,255,255,.07)}}/* B31.3: був топ-рівневий :root:not([data-theme=light]) → в auto-light накладав хардкод-дебоз .30 на світлий банер (well 3× за задум .10). Auto-частину в @media → дебоз лише explicit-dark + auto-dark; auto-light = база. explicit-режим не зачеплено. Консистент із хедер-фіксом р.166. */
+/* B35 E (A57 HYBRID reveal): #ph-banner = КЛИП-СЛОТ (layout-only). Увесь візуал (bg/тінь/rail/дебоз) переїхав на .ph-b-in шторку — щоб під час reveal слот був прозорим оверлеєм (нуль «порожнього прямокутника»), а кольорова шторка translateY(-100%→0) всередині overflow:hidden слота. Статичний (показаний, не-анім) стан: слот block у flow, .ph-b-in заповнює → виглядає 1:1 як раніше. */
+#ph-banner{flex-shrink:0}
+#ph-banner.bnr-rev{position:absolute;left:0;right:0;z-index:30;overflow:hidden}/* під час анім: оверлей-клип над верхом .screens (top/height задає JS); z<nav(50), >screens */
+.ph-b-in{display:flex;align-items:center;gap:8px;padding:8px 12px 7px;background:var(--band);box-shadow:var(--band-sh);border-bottom:1px solid var(--border);border-left:4px solid var(--accent)}/* Batch 25.2: band Lift/Well через --band; rail 3→4px (секція B). B35: візуал перенесено сюди з #ph-banner. */
+/* B31.1 (A65/A39 dark-фікс): сирий --band-sh на темній = світло ЗВЕРХУ = ембоз → банер читався пласко й чуже vs дебоз-контролі над ним + well-версія світлої (A39 розбіжність характеру по темах). Flip → DEBOZ-well: тінь зверху(.30)+світло знизу(.070, device — підсвічує штрих-пунктир Tab-4 не забиваючи) + втоплений bg. Скоуп лише банер; --band/--band-sh цілі (контролі мають свій оверрайд р.165). Both explicit-dark + auto-dark. B35: селектор #ph-banner→.ph-b-in (рендериться 1:1, ті самі device-locked значення). */
+[data-theme="dark"] .ph-b-in{background:color-mix(in srgb,var(--bg-soft) 70%,var(--card));box-shadow:inset 0 1.5px 2px rgba(0,0,0,.30),inset 0 -1px 0 rgba(255,255,255,.07)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .ph-b-in{background:color-mix(in srgb,var(--bg-soft) 70%,var(--card));box-shadow:inset 0 1.5px 2px rgba(0,0,0,.30),inset 0 -1px 0 rgba(255,255,255,.07)}}/* B31.3: був топ-рівневий :root:not([data-theme=light]) → в auto-light накладав хардкод-дебоз .30 на світлий банер (well 3× за задум .10). Auto-частину в @media → дебоз лише explicit-dark + auto-dark; auto-light = база. explicit-режим не зачеплено. Консистент із хедер-фіксом р.166. */
+@media(prefers-reduced-motion:reduce){.ph-b-in,#ph-banner.bnr-rev .ph-b-in{transition:none!important}}/* A57: reduced-motion → снап (reveal вимикається в JS, тут страховка) */
 .ph-b-ico{color:var(--accent);flex-shrink:0;display:flex;align-items:center}
 .ph-b-body{flex:1;min-width:0}
 .ph-b-addr{font-size:12px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -289,7 +292,7 @@ button{font-family:inherit;border:none;cursor:pointer;background:none;color:inhe
 .cl-st{display:flex;align-items:center;gap:3px;font-size:11px;font-weight:700}
 .cl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}
 /* Batch 8d TAB4-OUTLET-FUSE: візуально склеюємо ph-banner і ctx-layer на Tab 4 з outlet */
-body.tab4-fused .ph-b-in{border-bottom:none}
+body.tab4-fused .ph-b-in{border-bottom:none}/* B35: бордер переїхав на .ph-b-in; (0,2,1)>база (0,1,0) */
 body.tab4-fused #ctx-layer{background:color-mix(in srgb,var(--bg-soft),var(--card) 30%);border-top:1px dashed var(--border-2);padding-left:32px}/* B31.1 (світла сепарація): банер і статус мали той самий --bg-soft → зливались, пунктир --border блякнув. База=світлі: статус тон-крок +30% до card + пунктир --border-2 (device). */
 [data-theme="dark"] body.tab4-fused #ctx-layer,:root:not([data-theme="light"]) body.tab4-fused #ctx-layer{background:var(--bg-soft);border-top-color:var(--border)}/* B31.1: на темній тон-крок уже є (банер V2 ≈#161c25 vs статус --bg-soft #11161e) — restore оригінал, інакше статус зрівнявся б із bg банера V2 і re-merge. */
 /* B31.2 (A39 спліт, device/Konst): нижня лінія статус-ряду на СВІТЛІЙ ледь помітна — base --border #d3dedb майже зливається зі статус-поверхнею (#e8efed) й картками (#eef3f2); ТЕМНА вже читає --border #333b46 як чисту світлу основу-сепаратор → не чіпаємо. Підсилюємо ЛИШЕ світлу на один тон-крок →--border-2 #bfcecb (збалансовано). Закриває асиметрію B31.1 (верхній шов уже --border-2 на світлій, нижній лишався --border). Auto-safe: explicit-light + auto-light, ніколи dark; спільний --border НЕ ретюнимо (A62). */
@@ -535,7 +538,7 @@ body.roomy-vh .qr-area{gap:12px}
 .chip.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);box-shadow:0 1px 2px rgba(42,140,132,.12),0 3px 8px rgba(42,140,132,.14)}/* B33: активний = teal + об'єм (не пласка заливка) */
 [data-theme="dark"] .chip.on{box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 6px rgba(0,0,0,.22)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.on{box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 6px rgba(0,0,0,.22)}}
-.sh-reset{display:block;width:calc(100% - 32px);margin:16px 16px 0;padding:11px;border-radius:var(--rs);border:1.5px solid var(--border-2);background:var(--card-2);color:var(--ink-2);font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(20,40,35,.05),0 3px 8px rgba(20,40,35,.07);transition:transform .12s,opacity .12s}/* B33 (B): ghost→border2+заливка (elevation-мова; A65 кнопка≠well) */
+.sh-reset{display:block;width:calc(100% - 32px);margin:16px 16px 0;padding:11px;border-radius:var(--rs);border:1.5px solid var(--border-2);background:var(--card-2);color:var(--ink-2);font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(20,40,35,.05),0 3px 8px rgba(20,40,35,.07);transition:transform .12s}/* B33 (B): ghost→border2+заливка (elevation-мова; A65 кнопка≠well). B35: opacity прибрано з transition → жодного видимого фліпу стану (reset тепер завжди активна, MEDIUM-фікс); fade-in на відкритті несе stagger (свій inline transition). */
 [data-theme="dark"] .sh-reset{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 6px rgba(0,0,0,.22)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .sh-reset{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 6px rgba(0,0,0,.22)}}
 .sh-reset:active:not(:disabled){transform:scale(.985)}
@@ -808,7 +811,7 @@ function out() { return S.outlet !== null ? sr().o[S.outlet] : null; }
 
 const ST_COL = {ok:'var(--ok)',warn:'var(--warn)',late:'var(--late)',crit:'var(--crit)'};
 // B30.1/B30.4 (wsd 10.6): build-константа. Усі версійні поверхні читають APP_BUILD, не хардкод. User-visible версія білда → About-шіт (A58, Фаза 4) — це і є коректна поверхня. Console-маркер прибрано (B30.4): на реальному PWA консоль невидима юзеру (нуль користі), а в прев'ю Claude будь-який console-вивід відкриває панель Console Messages. Окремий урок про відсутність console.info у сендбоксі — кандидат Cookbook A68.
-const APP_BUILD={batch:34,rev:2,phase:'3',date:'20.06.2026'}; // B34 rev2 (+E): E — банер HYBRID reveal (reserve-at-start FLIP: #ph-banner клип-слот + .ph-b-in шторка translateY-100%→0 + .screen.active glide translateY-H→0; чистий transform, ease-out, offset200/dur775; dark-overrides→.ph-b-in). rev1 (F+G): F — eq-card floating-press (.92/1.07@70%/800 spring, :active знято, #eq-list делегація). G — drill row-stagger (staggerRows 120/800/off160/dist10; фільтр рефакт. на той же helper). ───── B32 (Phase 3): анім-вибір картки Tab-2 — persistent DOM (renderOutlets без rebuild на вибір, sig-guard) + pseudo-opacity ring (composite) + фон+rank на .sel + WAAPI «один жест» (depth .96→over 1.045@70%→settle, 950ms Пружна). press-втиск 80ms, sel-dur 140ms, :active звужено до drill-down шіта, reduced-motion гард. Device re-test pending. ───── B31.3: auto-dark gap фікс — хедер-контролі (.sr-pill/.icon-btn) + ph-banner переведено на media-correct (дебоз лише explicit-dark+auto-dark, auto-light не зачеплено). B31.2: статус-ряд нижня лінія на світлій →--border-2 (A39 спліт). B31.1: світлий чіп-drop .120→.07 + ph-banner dark DEBOZ-well + світла сепарація банер↔статус. B31: chip-tray RECESS + чіп dark топ-світло .11.
+const APP_BUILD={batch:35,rev:1,phase:'3',date:'20.06.2026'}; // B35 rev1 (E + reset): E — банер HYBRID reveal (A57 структурний; #ph-banner клип-слот + .ph-b-in шторка translateY(-100%→0) + glide активного .screen translateY(0→H) синхронно + layout-swap у кінці; чистий transform, без пружини; offset 200/dur 775 ease-out, close 520; reduced-motion снап). Виправляє B34 reserve-at-start FLIP (контент угору обрізавсь .screens overflow → «порожній прямокутник»; тепер вниз). MEDIUM reset — кнопка «Скинути фільтри» завжди активна (прибрано фліп активна→muted; opacity знято з .sh-reset transition). ───── B34 rev1 (F+G): F — eq-card floating-press (.pressing .92 80ms + WAAPI playEqGesture 1.07@70%/800ms spring; :active bg/border прибрано; делегація #eq-list). G — drill-шіт row-stagger (staggerRows generic; sh-eq 120/800/off160/dist10, фільтр рефакторено на той же helper 90/780/dist16). E (банер HYBRID) — pending окремим інкрементом rev2. ───── B32 (Phase 3): анім-вибір картки Tab-2 — persistent DOM (renderOutlets без rebuild на вибір, sig-guard) + pseudo-opacity ring (composite) + фон+rank на .sel + WAAPI «один жест» (depth .96→over 1.045@70%→settle, 950ms Пружна). press-втиск 80ms, sel-dur 140ms, :active звужено до drill-down шіта, reduced-motion гард. Device re-test pending. ───── B31.3: auto-dark gap фікс — хедер-контролі (.sr-pill/.icon-btn) + ph-banner переведено на media-correct (дебоз лише explicit-dark+auto-dark, auto-light не зачеплено). B31.2: статус-ряд нижня лінія на світлій →--border-2 (A39 спліт). B31.1: світлий чіп-drop .120→.07 + ph-banner dark DEBOZ-well + світла сепарація банер↔статус. B31: chip-tray RECESS + чіп dark топ-світло .11.
 const ST_LBL = {ok:'ОК',warn:'Перевірити',late:'Давно',crit:'Критично'};
 const ST_D   = {ok:'1–30 дн',warn:'31–60 дн',late:'61–120 дн',crit:'120+ дн'};
 // B30 (A65): GUID prefix-emphasis — перший блок (до першого дефіса) у .guid-pre (ink-2/600), решта muted. Формат: {XXXXXXXX-…}.
@@ -841,8 +844,8 @@ function renderBanner(){
   const el=document.getElementById('ph-banner');
   const o=out();
   // Batch 8i TAB2-FILTER-AIR: body.has-banner стан для CSS-aware filter-row spacing
-  // E (B34, HYBRID): банер у DOM; reveal через bnrIn (шторка .ph-b-in + glide .screen.active, чистий transform, ease-out, offset200/dur775). Анім лише на перехід hidden→shown (не ре-анім при зміні аптеки/фільтра). A57: структурний reveal → ease, не пружина.
-  if(!o){if(_bnrShown&&!reduceOn()){bnrOut(el);}else{el.style.display='none';}_bnrShown=false;document.body.classList.remove('has-banner');return;}
+  // B35 E (A57 HYBRID reveal): банер = клип-слот + .ph-b-in шторка (translateY) + glide активного .screen вниз + layout-swap у кінці. Чистий transform (композитор, нуль per-frame layout), без пружини (структурний reveal). offset 200 / dur 775 ease-out. Деталі — bnrIn/bnrOut.
+  if(!o){if(_bnrShown&&!reduceOn()){bnrOut(el);}else{el.style.display='none';el.classList.remove('bnr-rev');}_bnrShown=false;document.body.classList.remove('has-banner');return;}
   el.style.display='block';
   document.body.classList.add('has-banner');
   el.innerHTML=`<div class="ph-b-in">
@@ -855,31 +858,36 @@ function renderBanner(){
   </div>`;
   if(!_bnrShown){_bnrShown=true;bnrIn(el);}/* E: анім лише на перехід hidden→shown (не ре-анім при зміні аптеки/фільтра) */
 }
-// E (B34, HYBRID reveal): reserve-at-start FLIP — банер у потік (display:block, слот висотою H) + .screen.active translateY(-H) компенсує (кадр 0 без стрибка). Тоді синхронно: .ph-b-in шторкою translateY(-100%→0) + .screen.active glide translateY(-H→0). ОБИДВА — чистий transform (композитор, нуль per-frame layout). Один reflow на старті, нуль у кінці. ease-out cubic-bezier(.2,.7,.3,1), БЕЗ пружини (A57: структурний reveal). offset 200ms (80×2.5 slow-mo×bake) · dur 775ms (310×2.5).
+// ── B35 E · HYBRID банер-reveal (A57 структурний; чистий transform + layout-swap) ──
+// Слот #ph-banner → absolute клип-оверлей (top=offsetTop, height=H) над верхом .screens; шторка .ph-b-in translateY(-100%→0); активний .screen translateY(0→H) СИНХРОННО (низ шторки = верх контенту весь час, бо та сама крива/H/старт → нуль гепу). Кінець: layout-swap — зняти .bnr-rev (банер→flow H), скинути .screen transform у 0 = один reflow без стрибка. Контент їде ВНИЗ → клип лише знизу (.screens/.screen overflow безпечні; рух угору й був багом B34). offset/dur — slow-mo×bake (80/310 ×2.5 = 200/775), ease-out без пружини.
+const _BNR={EASE:'cubic-bezier(.2,.7,.3,1)',DUR:775,OFF:200,OUT:520};
+function _bnrScreen(){return document.querySelector('.screen.active');}
+function _bnrClear(el,inEl,scr){el.classList.remove('bnr-rev');el.style.top='';el.style.height='';if(inEl){inEl.style.transition='';inEl.style.transform='';}if(scr){scr.style.transition='';scr.style.transform='';}}
 function bnrIn(el){
-  const inn=el.firstElementChild;
-  const scr=document.querySelector('.screen.active');
-  if(reduceOn()){if(inn)inn.style.transform='';if(scr){scr.style.transition='';scr.style.transform='';}return;}
-  const h=el.offsetHeight; // H = висота слота (display:block уже застосовано → .screens стиснулась, scr репозиц. вниз H)
-  if(inn){inn.style.transition='none';inn.style.transform='translateY(-100%)';}      // шторка захована над слотом (клип)
-  if(scr){scr.style.transition='none';scr.style.transform='translateY('+(-h)+'px)';} // контент підтягнуто вгору → візуально без стрибка
-  void el.offsetHeight; // reflow: фіксуємо стан кадру 0
+  const inEl=el.querySelector('.ph-b-in'),scr=_bnrScreen();
+  if(reduceOn()){_bnrClear(el,inEl,scr);return;}/* снап: банер уже display:block у flow */
+  const top=el.offsetTop,H=el.offsetHeight;/* форс-layout до paint (renderBanner→bnrIn — один синхр. таск) */
+  el.classList.add('bnr-rev');el.style.top=top+'px';el.style.height=H+'px';
+  if(inEl){inEl.style.transition='none';inEl.style.transform='translateY(-100%)';}
+  if(scr){scr.style.transition='none';scr.style.transform='translateY(0)';}
+  void el.offsetHeight;/* commit кадру 0: банер-оверлей невидимий (шторка вгорі, клип), контент зверху, НЕ in-flow → нуль «порожнього прямокутника» */
   setTimeout(()=>{
-    const E='775ms cubic-bezier(.2,.7,.3,1)';
-    if(inn){inn.style.transition='transform '+E;inn.style.transform='translateY(0)';}
-    if(scr){scr.style.transition='transform '+E;scr.style.transform='translateY(0)';}
-    setTimeout(()=>{if(inn){inn.style.transition='';inn.style.transform='';}if(scr){scr.style.transition='';scr.style.transform='';}},800);
-  },200);/* offset 200ms — device-watchpoint: відв'язано від press-down(80ms); якщо пауза завелика на ×1 → ближче до 80 */
+    if(inEl){inEl.style.transition='transform '+_BNR.DUR+'ms '+_BNR.EASE;inEl.style.transform='translateY(0)';}
+    if(scr){scr.style.transition='transform '+_BNR.DUR+'ms '+_BNR.EASE;scr.style.transform='translateY('+H+'px)';}
+    setTimeout(()=>_bnrClear(el,inEl,scr),_BNR.DUR+20);/* layout-swap у кінці (атомарно) */
+  },_BNR.OFF);/* offset 200ms відв'язує банер від press-down → старт ~на підйомі card-pop */
 }
 function bnrOut(el){
-  const inn=el.firstElementChild;
-  const scr=document.querySelector('.screen.active');
-  if(reduceOn()){el.style.display='none';return;}
-  const h=el.offsetHeight;
-  const E='240ms cubic-bezier(.4,0,1,1)';/* ease-in вихід, коротше за вхід */
-  if(inn){inn.style.transition='transform '+E;inn.style.transform='translateY(-100%)';}
-  if(scr){scr.style.transition='transform '+E;scr.style.transform='translateY('+(-h)+'px)';}
-  setTimeout(()=>{el.style.display='none';if(inn){inn.style.transition='';inn.style.transform='';}if(scr){scr.style.transition='';scr.style.transform='';}},250);
+  const inEl=el.querySelector('.ph-b-in'),scr=_bnrScreen();
+  if(reduceOn()){el.style.display='none';_bnrClear(el,inEl,scr);return;}
+  const top=el.offsetTop,H=el.offsetHeight;
+  el.classList.add('bnr-rev');el.style.top=top+'px';el.style.height=H+'px';/* банер→оверлей (виходить з flow) */
+  if(inEl){inEl.style.transition='none';inEl.style.transform='translateY(0)';}
+  if(scr){scr.style.transition='none';scr.style.transform='translateY('+H+'px)';}/* компенсація: контент тримається на +H, екран не стрибне вгору при виході банера з flow */
+  void el.offsetHeight;
+  if(inEl){inEl.style.transition='transform '+_BNR.OUT+'ms '+_BNR.EASE;inEl.style.transform='translateY(-100%)';}
+  if(scr){scr.style.transition='transform '+_BNR.OUT+'ms '+_BNR.EASE;scr.style.transform='translateY(0)';}
+  setTimeout(()=>{el.style.display='none';_bnrClear(el,inEl,scr);},_BNR.OUT+20);
 }
 
 // ── TAB 1: OVERVIEW ──
@@ -1637,8 +1645,8 @@ function staggerSheet(id){
   staggerRows(box.querySelectorAll('.sh-sec,.chip-row,.sh-reset'),{step:90,off:0,dur:780,dist:16});
 }
 // B: reset дизейб при 0 активних фільтрів (стан 1:1 з hasF р.~1088 / eqHasF)
-function updatePhReset(){const b=document.getElementById('ph-reset');if(b)b.disabled=!(S.fNet!=='all'||S.fCity!=='all'||S.fSt.length>0);}
-function updateEqReset(){const b=document.getElementById('eq-reset');if(b)b.disabled=!(S.eqFBrand!=='all'||S.eqFSt.length>0);}
+function updatePhReset(){const b=document.getElementById('ph-reset');if(b)b.disabled=false;}/* B35 (MEDIUM): reset ЗАВЖДИ активна → прибрано видимий фліп активна→muted на відкритті шіта. Альт «лишити дизейбл при 0 фільтрах»: b.disabled=!(S.fNet!=='all'||S.fCity!=='all'||S.fSt.length>0) */
+function updateEqReset(){const b=document.getElementById('eq-reset');if(b)b.disabled=false;}/* B35: 1:1 з updatePhReset. Альт: b.disabled=!(S.eqFBrand!=='all'||S.eqFSt.length>0) */
 // C: прес-фідбек flt-btn (.pressing scale .90; A67 тір чіпа, контекст-глибше). _pb-гард (10.2).
 function bindPress(btn){
   if(!btn||btn._pb)return;btn._pb=1;let on=false;
