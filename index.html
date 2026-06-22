@@ -66,6 +66,11 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   --accent-border:rgba(42,140,132,.22);--accent-glow:rgba(42,140,132,.12);
   /* B26 (2a): accent-text = active-текст nav + D2 (A1, новий токен). cap-bg = fill капсули nav + база D2-dark-градієнта (A56/A6). */
   --accent-text:#237770;--cap-bg:var(--accent-soft); /* світла: cap-bg = accent-soft (#E8F4F2) */
+  /* B42 A54 Топ/Фокус — ВЛАСНА родина (НЕ --cap-bg[хедер] / --tray-* / --well-*). Locked harness v3 (device✓). */
+  --seg-trk-bg:color-mix(in srgb,var(--bg),var(--border-2) 30%);--seg-trk-sh:inset 0 2px 6px rgba(0,0,0,.14);--seg-trk-bd:1px solid color-mix(in srgb,var(--border-2) 40%,transparent);--seg-trk-rad:24px; /* світла: recess+пігулка (A65) */
+  --seg-thumb-fill:hsl(174,18%,92%);--seg-thumb-text:hsl(174,65%,12%);--seg-thumb-bd:hsla(174,70%,38%,.70);
+  --seg-thumb-depth:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 2px rgba(0,0,0,.3),0 2px 8px rgba(0,0,0,.16);
+  --seg-plate:rgba(42,140,132,.13);--seg-dur:500ms;--seg-ease:cubic-bezier(.34,1.70,.64,1);
   --nav-dur:400ms;--nav-ease:cubic-bezier(.34,1.3,.64,1); /* A56/A57: nav-капсула — мʼякша пружина за seg */
   /* B29 (A56 glass): тинт UNIFIED обидві теми (blur/sat) + separation [data-theme]-СПЛІТ (bg/rim/lift). teal-mix 8% уже в glass-bg. */
   --glass-blur:12px;--glass-sat:190%;
@@ -97,6 +102,10 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   --accent-soft:#1A4540;--accent-soft-2:rgba(42,140,132,.10);
   --accent-border:rgba(42,140,132,.28);--accent-glow:rgba(42,140,132,.15);
   --accent-text:#34A097;--cap-bg:#37414f; /* B26 (2a): темна cap-bg=DB (тон +2, НЕ --card-2 #2b3340; A45 — обʼєм тоном) */
+  --seg-trk-bg:color-mix(in srgb,var(--bg),var(--card) 45%);--seg-trk-sh:none;--seg-trk-bd:1px solid rgba(70,80,93,.73);--seg-trk-rad:24px; /* B42 A54: темна тон45(#151b23)+рейка73%+пігулка, recess мертвий OLED (A45) */
+  --seg-thumb-fill:hsl(174,28%,12%);--seg-thumb-text:hsl(174,8%,85%);--seg-thumb-bd:hsla(174,70%,52%,.65);
+  --seg-thumb-depth:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(255,255,255,.22),0 2px 8px rgba(0,0,0,.16);
+  --seg-plate:rgba(152,205,200,.15);
   --glass-bg:rgba(19,31,38,.73);--glass-rim:rgba(255,255,255,.07);
   --glass-lift:0 -1px 2px rgba(0,0,0,.42),0 -10px 24px rgba(0,0,0,.30); /* B29 (A39/A45): dark separation важча — rim+lift підняті, blur/sat unified з :root */
   --sh1:inset 0 1px 0 rgba(255,255,255,.055),inset 0 -1px 0 rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.28);
@@ -117,6 +126,10 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
     --accent-soft:#1A4540;--accent-soft-2:rgba(42,140,132,.10);
     --accent-border:rgba(42,140,132,.28);--accent-glow:rgba(42,140,132,.15);
     --accent-text:#34A097;--cap-bg:#37414f; /* B26 (2a): auto-dark паритет — cap-bg=DB, НЕ --card-2 */
+    --seg-trk-bg:color-mix(in srgb,var(--bg),var(--card) 45%);--seg-trk-sh:none;--seg-trk-bd:1px solid rgba(70,80,93,.73);--seg-trk-rad:24px; /* B42 A54 auto-dark паритет */
+    --seg-thumb-fill:hsl(174,28%,12%);--seg-thumb-text:hsl(174,8%,85%);--seg-thumb-bd:hsla(174,70%,52%,.65);
+    --seg-thumb-depth:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(255,255,255,.22),0 2px 8px rgba(0,0,0,.16);
+    --seg-plate:rgba(152,205,200,.15);
     --glass-bg:rgba(19,31,38,.73);--glass-rim:rgba(255,255,255,.07);
     --glass-lift:0 -1px 2px rgba(0,0,0,.42),0 -10px 24px rgba(0,0,0,.30); /* B29: auto-dark паритет glass із [data-theme=dark] */
     --sh1:inset 0 1px 0 rgba(255,255,255,.055),inset 0 -1px 0 rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.28);
@@ -372,12 +385,17 @@ body.tab4-fused #ctx-layer{background:color-mix(in srgb,var(--bg-soft),var(--car
 .card-units{display:flex;align-items:center;gap:5px;flex-shrink:0;color:var(--ink);font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
 .card-units svg{opacity:.55}
 /* ============ Batch 15 TAB1-CHIP-PAIR ============ */
-.chip-pair{display:flex;gap:8px;margin-bottom:10px}
-.chip-pair-it{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border-radius:var(--rs);border:1px solid var(--border);background:var(--card);color:var(--ink-2);font-size:12px;font-weight:700;cursor:pointer;transition:all .12s;box-shadow:var(--sh1)}
-.chip-pair-it:active{background:var(--bg-soft)}
-.chip-pair-it.act{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
-.chip-pair-it .cp-ico{display:flex;align-items:center}
-.chip-pair-it .cp-cnt{font-size:13px;font-weight:800;opacity:1;margin-left:5px;color:inherit;font-variant-numeric:tabular-nums}
+/* B42 A54: анімований два-сегмент Топ/Фокус (persistent thumb, slide). Тача per-theme (recess light / тон+рейка dark). */
+.a54-cap{position:relative;display:flex;background:var(--seg-trk-bg);box-shadow:var(--seg-trk-sh);border:var(--seg-trk-bd);border-radius:var(--seg-trk-rad);padding:3px;margin-bottom:10px;overflow:hidden}
+.a54-thumb{position:absolute;left:0;top:3px;bottom:3px;border-radius:calc(var(--seg-trk-rad) - 3px);background:var(--seg-thumb-fill);border:2px solid var(--seg-thumb-bd);box-shadow:var(--seg-thumb-depth);z-index:0;transition:transform var(--seg-dur) var(--seg-ease),width var(--seg-dur) var(--seg-ease);will-change:transform,width}
+.a54-seg{flex:1;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer;transition:color var(--seg-dur) var(--seg-ease);user-select:none;-webkit-user-select:none}
+.a54-seg.act{color:var(--seg-thumb-text)}
+.a54-lift{display:flex;align-items:center;justify-content:center}
+.a54-seg.s-top .a54-lift{border-radius:7px;padding:4px;background:transparent;transition:background var(--seg-dur) var(--seg-ease)}
+.a54-seg.s-top.act .a54-lift{background:var(--seg-plate)}
+.a54-cnt{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;background:transparent;color:inherit;transition:background var(--seg-dur) var(--seg-ease)}
+.a54-seg.s-focus.act .a54-cnt{background:var(--seg-plate)}
+@media(prefers-reduced-motion:reduce){.a54-thumb,.a54-seg,.a54-lift,.a54-cnt{transition:none}}
 /* ============ Batch 15 TAB1-OUTLET-CTA ============ */
 .cta-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:13px 14px;border-radius:var(--rs);border:1px solid var(--border);background:var(--card);color:var(--ink);font-size:13px;font-weight:700;cursor:pointer;transition:all .12s;box-shadow:var(--sh1);margin-bottom:10px;font-family:inherit}
 .cta-btn:active{background:var(--card-2);border-color:var(--border-2)}
@@ -977,21 +995,7 @@ function renderOverview(){
   const pct=n=>Math.round(n/t*100)+'%';
 
   // 2 списки — TOP (за обладнанням) і Фокус (потребують уваги)
-  const topList = d.o
-    .map((o,i)=>({...o,idx:i}))
-    .filter(o => o.i.length > 0)
-    .sort((a,b)=>{
-      const lenDiff = b.i.length - a.i.length;
-      if(lenDiff!==0) return lenDiff;
-      return (b.ok/(b.t||1)) - (a.ok/(a.t||1));
-    })
-    .slice(0,5);
-
-  const focusList = d.o
-    .map((o,i)=>({...o,idx:i,w2:o.c*1000+o.l*100+o.w}))
-    .filter(o=>o.c>0||o.l>0||o.w>0)
-    .sort((a,b)=>b.w2-a.w2)
-    .slice(0,5);
+  const {focusList} = tab1Lists(); // B42 A54: спільні списки (topList не потрібен у повному render — лише listHTML+badge)
 
   // Batch 16 TAB1-PAIR-A-ASYMMETRY: eqIco/flagIco moved here (use both in chips AND in renderRow)
   // Equipment icon для chip TOP та Top-card units block
@@ -999,28 +1003,7 @@ function renderOverview(){
   // Flag icon для chip Фокус (watchlist/marker — не bookmark, не target)
   const flagIco = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
 
-  // Batch 16 RENDER-ROW-ASYMMETRIC: mode='top' → eqIco+N | mode='focus' → status dots
-  // Архітектурно: Tab 1 = preview/dashboard (унікальний візуальний словник), на відміну від Tab 2/4 (working spaces з 'N + од.' патерном)
-  const renderRow = (o, i, mode) => {
-    const rightBlock = mode === 'top'
-      ? `<div class="card-units" style="margin:0 0 0 auto">${eqIco}<span>${o.i.length}</span></div>`
-      : `<div class="ph-card-dots" style="margin:0 0 0 auto;flex-shrink:0;gap:8px">${[{v:o.ok,st:'ok'},{v:o.w,st:'warn'},{v:o.l,st:'late'},{v:o.c,st:'crit'}].filter(x=>x.v>0).map(x=>`<div class="ph-dot-it"><div class="ph-dot" style="background:var(--${x.st})"></div><span style="color:var(--${x.st})">${x.v}</span></div>`).join('')}</div>`;
-    return `<div class="prob-row" onclick="selectOutlet(${o.idx})">
-      <div class="prob-num">${i+1}</div>
-      <div class="prob-info">
-        <div class="prob-addr">${o.a}</div>
-        <div class="prob-meta">${o.net||o.city||''}</div>
-      </div>
-      ${rightBlock}
-    </div>`;
-  };
-
-  const activeList = S.tab1Mode==='top' ? topList : focusList;
-  const listHTML = activeList.length
-    ? activeList.map((o,i)=>renderRow(o,i,S.tab1Mode)).join('')
-    : (S.tab1Mode==='focus'
-        ? `<div style="padding:16px 0;color:var(--ok);font-size:13px;font-weight:600;text-align:center">Все відскановано вчасно</div>`
-        : `<div style="padding:16px 0;color:var(--muted);font-size:13px;text-align:center">Немає даних</div>`);
+  const listHTML = tab1ListHTML(S.tab1Mode); // B42 A54: рядки через спільний tab1ListHTML (renderRow видалено — живе у tab1Row)
 
   const critPhC=d.o.filter(o=>o.c>0).length;
   // Batch 8e TAB1-TILE-SUBS: нові subscripts на основі номенклатури
@@ -1065,16 +1048,14 @@ function renderOverview(){
         <div class="ov-tile-sub">${d.c>0?'У '+critPhC+' '+apothW:'Все в порядку'}</div>
       </div>
     </div>
-    <div class="chip-pair">
-      <div class="chip-pair-it${S.tab1Mode==='top'?' act':''}" onclick="switchTab1Mode('top')">
-        <span class="cp-ico">${eqIco}</span>Топ
-      </div>
-      <div class="chip-pair-it${S.tab1Mode==='focus'?' act':''}" onclick="switchTab1Mode('focus')">
-        <span class="cp-ico">${flagIco}</span>Фокус${focusCount>0?`<span class="cp-cnt">${focusCount}</span>`:''}
-      </div>
+    <div class="a54-cap" id="a54cap">
+      <div class="a54-thumb"></div>
+      <div class="a54-seg s-top${S.tab1Mode==='top'?' act':''}" onclick="switchTab1Mode('top')"><span class="a54-lift">${eqIco}</span>Топ</div>
+      <div class="a54-seg s-focus${S.tab1Mode==='focus'?' act':''}" onclick="switchTab1Mode('focus')"><span class="a54-lift">${flagIco}</span>Фокус${focusCount>0?`<span class="a54-cnt">${focusCount}</span>`:''}</div>
     </div>
     <div class="prob-list">${listHTML}</div>
     <div class="h16"></div>`;
+  placeTab1Thumb(false); // B42 A54: початкове позиціювання thumb після innerHTML (no-anim)
 }
 
 // Batch 15 TAB1-OUTLET-CTA: Smart CTA з 4 станами — navigational tone
@@ -1115,8 +1096,65 @@ function ctaToEquip(filter){
 function switchTab1Mode(mode){
   if(S.tab1Mode===mode) return;
   S.tab1Mode = mode;
-  renderOverview();
+  // B42 A54 persistent-DOM (дзеркало B32/B37, 14.13): НЕ renderOverview() — повний rebuild знищив би thumb-вузол → снап замість слайду (A54-урок-3). Тогл .act на живих сегментах + слайд thumb + rebuild ЛИШЕ prob-list + A71 каскад.
+  const cap=document.getElementById('a54cap');
+  if(cap) cap.querySelectorAll('.a54-seg').forEach(s=>s.classList.toggle('act',s.classList.contains('s-'+mode)));
+  placeTab1Thumb(true);
+  liftTab1Active();
+  const pl=document.querySelector('.prob-list');
+  if(pl){ pl.innerHTML=tab1ListHTML(mode); staggerRows(pl.querySelectorAll('.prob-row'),{step:55,off:0,dur:480,dist:10}); }
 }
+
+// B42 A54: спільні списки/рядки Tab-1 (renderOverview ПОВНИЙ render + switchTab1Mode persistent-path; без дублювання логіки)
+function tab1Lists(){
+  const d=sr();
+  const topList=d.o.map((o,i)=>({...o,idx:i})).filter(o=>o.i.length>0).sort((a,b)=>{const ld=b.i.length-a.i.length;if(ld!==0)return ld;return (b.ok/(b.t||1))-(a.ok/(a.t||1));}).slice(0,5);
+  const focusList=d.o.map((o,i)=>({...o,idx:i,w2:o.c*1000+o.l*100+o.w})).filter(o=>o.c>0||o.l>0||o.w>0).sort((a,b)=>b.w2-a.w2).slice(0,5);
+  return {topList,focusList};
+}
+function tab1Row(o,i,mode){
+  const eqIco='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>';
+  const rightBlock = mode==='top'
+    ? `<div class="card-units" style="margin:0 0 0 auto">${eqIco}<span>${o.i.length}</span></div>`
+    : `<div class="ph-card-dots" style="margin:0 0 0 auto;flex-shrink:0;gap:8px">${[{v:o.ok,st:'ok'},{v:o.w,st:'warn'},{v:o.l,st:'late'},{v:o.c,st:'crit'}].filter(x=>x.v>0).map(x=>`<div class="ph-dot-it"><div class="ph-dot" style="background:var(--${x.st})"></div><span style="color:var(--${x.st})">${x.v}</span></div>`).join('')}</div>`;
+  return `<div class="prob-row" onclick="selectOutlet(${o.idx})">
+      <div class="prob-num">${i+1}</div>
+      <div class="prob-info"><div class="prob-addr">${o.a}</div><div class="prob-meta">${o.net||o.city||''}</div></div>
+      ${rightBlock}
+    </div>`;
+}
+function tab1ListHTML(mode){
+  const {topList,focusList}=tab1Lists();
+  const activeList = mode==='top'?topList:focusList;
+  return activeList.length
+    ? activeList.map((o,i)=>tab1Row(o,i,mode)).join('')
+    : (mode==='focus'
+        ? `<div style="padding:16px 0;color:var(--ok);font-size:13px;font-weight:600;text-align:center">Все відскановано вчасно</div>`
+        : `<div style="padding:16px 0;color:var(--muted);font-size:13px;text-align:center">Немає даних</div>`);
+}
+// A54 thumb slide: getBoundingClientRect + contained transform+width (НЕ fixed-width CSS); 500ms spring (A54-канон single-container). reduceOn→снап (CSS-гард на .a54-thumb).
+function placeTab1Thumb(animate){
+  const cap=document.getElementById('a54cap'); if(!cap) return;
+  const seg=cap.querySelector('.a54-seg.act'), thumb=cap.querySelector('.a54-thumb');
+  if(!seg||!thumb) return;
+  const cr=cap.getBoundingClientRect(), sr2=seg.getBoundingClientRect();
+  const bl=parseFloat(getComputedStyle(cap).borderLeftWidth)||0;
+  const x=sr2.left-cr.left-bl;
+  if(!animate) thumb.style.transition='none';
+  thumb.style.width=sr2.width+'px';
+  thumb.style.transform='translateX('+x+'px)';
+  if(!animate){ void thumb.offsetWidth; thumb.style.transition=''; }
+}
+// Симетрія-тогл: icon-lift (Топ, ліворуч) / badge-lift (Фокус, праворуч); 3px підскок, той самий spring.
+function liftTab1Active(){
+  if(reduceOn()) return;
+  const seg=document.querySelector('#a54cap .a54-seg.act'); if(!seg) return;
+  const lifter=seg.classList.contains('s-top')?seg.querySelector('.a54-lift'):seg.querySelector('.a54-cnt');
+  if(!lifter||!lifter.animate) return;
+  lifter.animate([{transform:'translateY(0)'},{transform:'translateY(-3px)',offset:.5},{transform:'translateY(0)'}],{duration:500,easing:'cubic-bezier(.34,1.70,.64,1)'});
+}
+window.addEventListener('resize',()=>placeTab1Thumb(false));
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>placeTab1Thumb(false));
 
 // ── TAB 2: PHARMACIES ──
 function renderPharmacies(){
