@@ -365,12 +365,45 @@ body.tab4-fused #ctx-layer{background:color-mix(in srgb,var(--bg-soft),var(--car
 .mb-ok{background:var(--ok)}.mb-warn{background:var(--warn)}.mb-late{background:var(--late)}.mb-crit{background:var(--crit)}
 /* OVERVIEW */
 .ov-sr-name{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:12px;color:var(--ink)}
-.prog-block{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;box-shadow:var(--sh1)}
-.prog-label{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600}
-.prog-bar-wrap{height:8px;border-radius:4px;overflow:hidden;display:flex;margin-bottom:8px}
-.prog-legend{display:flex;gap:10px;flex-wrap:wrap}
-.pl-it{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--ink-2)}
-.pl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+/* ============ B44 STATUS GAUGE (.sg) — замінює плаский .prog-block ============ */
+/* Преміум контейнер-гейдж: порт hero-матеріалу (eq-grad + per-theme ridge/depth, A45/A66), власна форма — велике % + товстий бар. Відрізняється від hero формою+роллю, НЕ елевацією-ямою. bench-locked (harness v2, device-picked) → device-pending у проді (12.9). Парам-повзунки --sg-* лишені для re-tune. */
+.sg{position:relative;overflow:hidden;border-radius:var(--r);padding:12px 14px;margin-bottom:12px;
+  --sg-int:40;--sg-fillL:99;--sg-borderL:88;--sg-shadow:1;--sg-ridge:0;--sg-barH:13;--sg-channel:.5;--sg-gloss:.4;--sg-pctSize:30;--sg-valL:13;--sg-mutL:38;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 3%,hsl(170,14%,calc(var(--sg-fillL)*1%))) 0%,color-mix(in srgb,var(--accent) calc(var(--sg-int)*1%),hsl(170,14%,calc(var(--sg-fillL)*1%))) 100%);
+  border:1px solid hsl(170,14%,calc(var(--sg-borderL)*1%));
+  box-shadow:0 3px 10px 3px rgba(20,40,35,calc(.10*var(--sg-shadow)))}
+.sg::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,var(--sg-ridge)),transparent)}
+.sg-top{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
+.sg-pct{font-weight:800;letter-spacing:-1.5px;line-height:.9;font-size:calc(var(--sg-pctSize)*1px);font-variant-numeric:tabular-nums;color:hsl(170,12%,calc(var(--sg-valL)*1%))}
+.sg-pct .u{font-size:.5em;font-weight:700;margin-left:1px}
+.sg-frac{font-size:12px;font-weight:600}
+.sg-frac,.sg-legend{color:hsl(170,8%,calc(var(--sg-mutL)*1%))}
+.sg-barwrap{position:relative;height:calc(var(--sg-barH)*1px);border-radius:calc(var(--sg-barH)*.5px);overflow:hidden;display:flex;margin-bottom:10px;background:rgba(20,40,35,.06);box-shadow:inset 0 1px 2px rgba(0,0,0,calc(.20*var(--sg-channel)))}
+.sg-seg{height:100%;position:relative}
+.sg-seg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,calc(.42*var(--sg-gloss))),transparent 62%);pointer-events:none}
+.sg-seg.s-ok{background:var(--ok)}.sg-seg.s-warn{background:var(--warn)}.sg-seg.s-late{background:var(--late)}.sg-seg.s-crit{background:var(--crit)}
+.sg-sheen{position:absolute;top:0;bottom:0;width:36%;left:-40%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);opacity:0}
+.sg-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;font-weight:600}
+.sg-li{display:flex;align-items:center;gap:5px}
+.sg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+/* dark — explicit + auto-dark (B31.3 домашній патерн; tone-fill+ridge+border, drop=декор/мертвий на OLED) */
+[data-theme="dark"] .sg{--sg-int:50;--sg-fillL:13;--sg-borderL:30;--sg-ridge:.38;--sg-channel:.4;--sg-gloss:.3;--sg-valL:92;--sg-mutL:70;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 3%,hsl(214,18%,calc(var(--sg-fillL)*1%))) 0%,color-mix(in srgb,var(--accent) calc(var(--sg-int)*1%),hsl(214,18%,calc(var(--sg-fillL)*1%))) 100%);
+  border-color:hsl(214,18%,calc(var(--sg-borderL)*1%));
+  box-shadow:0 2px 6px rgba(0,0,0,calc(.30*var(--sg-shadow)))}
+[data-theme="dark"] .sg-pct{color:hsl(214,14%,calc(var(--sg-valL)*1%))}
+[data-theme="dark"] .sg-frac,[data-theme="dark"] .sg-legend{color:hsl(214,10%,calc(var(--sg-mutL)*1%))}
+[data-theme="dark"] .sg-barwrap{background:rgba(0,0,0,.30);box-shadow:inset 0 1px 2px rgba(0,0,0,calc(.55*var(--sg-channel)))}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .sg{--sg-int:50;--sg-fillL:13;--sg-borderL:30;--sg-ridge:.38;--sg-channel:.4;--sg-gloss:.3;--sg-valL:92;--sg-mutL:70;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 3%,hsl(214,18%,calc(var(--sg-fillL)*1%))) 0%,color-mix(in srgb,var(--accent) calc(var(--sg-int)*1%),hsl(214,18%,calc(var(--sg-fillL)*1%))) 100%);
+    border-color:hsl(214,18%,calc(var(--sg-borderL)*1%));
+    box-shadow:0 2px 6px rgba(0,0,0,calc(.30*var(--sg-shadow)))}
+  :root:not([data-theme="light"]) .sg-pct{color:hsl(214,14%,calc(var(--sg-valL)*1%))}
+  :root:not([data-theme="light"]) .sg-frac,:root:not([data-theme="light"]) .sg-legend{color:hsl(214,10%,calc(var(--sg-mutL)*1%))}
+  :root:not([data-theme="light"]) .sg-barwrap{background:rgba(0,0,0,.30);box-shadow:inset 0 1px 2px rgba(0,0,0,calc(.55*var(--sg-channel)))}
+}
+@media(prefers-reduced-motion:reduce){.sg-seg{transition:none!important}}
 .ov-tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
 .ov-tile-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ovt-mut);margin-bottom:4px;display:flex;align-items:center;gap:5px}
 .ov-tile-val{font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-1px}
@@ -838,7 +871,7 @@ function out() { return S.outlet !== null ? sr().o[S.outlet] : null; }
 
 const ST_COL = {ok:'var(--ok)',warn:'var(--warn)',late:'var(--late)',crit:'var(--crit)'};
 // B30.1/B30.4 (wsd 10.6): build-константа. Усі версійні поверхні читають APP_BUILD, не хардкод. User-visible версія білда → About-шіт (A58, Фаза 4) — це і є коректна поверхня. Console-маркер прибрано (B30.4): на реальному PWA консоль невидима юзеру (нуль користі), а в прев'ю Claude будь-який console-вивід відкриває панель Console Messages. Окремий урок про відсутність console.info у сендбоксі — кандидат Cookbook A68.
-const APP_BUILD={batch:43,rev:1,phase:'3',date:'23.06.2026'}; // B43: hero-tiles eqgrad — світла L0 матовий (int60, tinted-drop 0 3px10px+3 spread, ridge0, mut hsl28, border L88), темна скляний еталон (tone-lift fill L13 + ridge38 top-light, int50). ::before 3px accent-strip → ridge top-light (per-theme). crit-плитка=.ov-crit (eq=crit). + Топ↔Фокус stagger 55/480/10→80/600/14 (ease .32,.72,0,1 decel default; thumb 500/spring НЕ чіпано). bench→prod, device-pending real-context(12.9). ── B41 RING-SHIMMER FIX (Tab-2 ph-card + flt-btn кільце): inset box-shadow→border на .ph-card::after(р.434)+.flt-btn::after(р.413). Корінь (верифіковано B40): банер анімує height 600ms→.screens(flex:1) стискається→.scroll-a resize щокадру→картки+filter-row(всередині scroll-a) сунуться сабпікселем→inset box-shadow кільце ре-растеризується=шимер. Ring-compare v1 device-тест (Konst): inset/outset/+wc ВСІ шимерять (обидва box-shadow-шляхи), border — чіткий ✓. Фікс=CSS-border (малюється як частина боксу, не re-raster), позиція=inset (box-sizing:border-box), opacity-reveal 140ms незмінний. eq-card кільця не має (drill, не select). B40 contain:layout ВІДКАТ (не береться). Хибний урок самері §8 «outset spread фікс» виправлено: outset теж шимерить. device-pending у проді (12.9). ───── B39_2 close ROOT-FIX «примара/розчинення»: .sh-box=ДИТИНА .sh-bg → гасіння opacity батька тане і бокс; тримаємо opacity:1, дим через background rgba(.5→0), бокс з'їжджає off-screen непрозорим (компер мав #bg/#sheet сиблінги). ───── B39: (1) .chip.on (шіт) + .flt-btn.on шіт→LIFT — well/neon→accent-lift 1:1 з Tab-3 .qr-chip.act; LIGHT elev185(chip)/140(flt-btn, нижче бо на сторінці не в таці); DARK tone-lift #264a46/#fff/#8ae5dc (A45/A66 — тон не тінь; слабко→fill-L↑). per-theme+auto-dark; ::after кільце flt-btn лишається. compare-locked, device-pending. (2) Tab-4 баг — eq-flt-btn.on toggle у renderEquipment (дзеркало ph; кнопка «Фільтри» не світилась при активному фільтрі). (3) sheet-CLOSE асиметрія — .closing-стан: close=accel-in cubic-bezier(.4,0,1,1) var(--sh-close)=405ms + scale.98; open лишається 260 decel(.32,.72,0,1); reset-delay 255ms (resetFlt/resetEqFlt — прес видно перед close); A18 visibility/backdrop подовжено під слайд; guard rapid open/close (_ct таймер). slow-mo BAKE ×1.5 (270→405/170→255); device-pending — 405 завелике на ×1 → --sh-close 320-360 (1 токен). ───── B38 (Фаза 3 layout+чіп): (1) Tab-3 LAYOUT-FIX — qr-area space-between→center (один child #qr-content → space-between був no-op→топ-якір → на вищому 15 Pro vh852 надлишок збирався порожнечею знизу well↔чіпи; center ділить верх/низ; tight лишає flex-start). (2) QR width-responsive — ген290 + --qr-sz=clamp(200,min(W*.7125,vh*.34),290); важіль=ШИРИНА (#app≤430; 15Pro 393pt ширший→ ті ж 260 дрібні); XS→267/15Pro→280 (device-pick Konst, 1:1); прибрано tight200/roomy260 !important; стале tier-комент 778/830→вимір 812/852 (обидва roomy). (3) Tab-3 .qr-chip.act — LIGHT #dcefed/#0e2f2c/#33ccbd+elev(.10/.14); DARK tone-lift #264a46/#fff/#8ae5dc+inset-ридж(.26/-.11)/drop.15 (фікс B37 box-shadow:none регресії «активний тоне» на OLED, A45/A39); border-owner=accent через специфічність .qr-chips .qr-chip.act(0,3,0)>статус(0,2,0) обидві теми; dot=status (JS, було accent). Усе device-pending B38. ───── B37 (Фаза 3 фінал): neon тон-даун DARK активний чіп (.chip.on шіт + .qr-chip.act Tab-3 → bg#152826/text#98CDC8/border#3D716C, glow-кільце OFF; device-locked Konst; S-важіль десатурації, не lum — A39 р.610) + прес чіпів ШІТА (.pressing scale.84/down80/ret280-spring; .84 контекст-виняток шіта — менші чіпи→гучніший відгук) через ПЕРСИСТЕНТНІ чіпи (data-v toggle .on БЕЗ innerHTML-rebuild — A54/14.13, щоб spring грав а не снапав) + делегований bindChipPress + прес sh-reset .90 (bindPress). ───── B36 rev1 (E in-flow + re-tap-close + reset-port): E — банер Опція A in-flow reveal (device-locked DUR 600/OFF 0/OUT 600/decel A22; #ph-banner клип-слот анімує height 0→H + .ph-b-in шторка translateY(-100%→0); token-guard проти fast open→close флішу; reduced-motion снап). Замінює buggy B34 max-height-FLIP та B35 HYBRID (2 device-баги: flash на race-close + банер-зависоко від offsetTop-виміру) — обидва прибрані структурно (нема absolute/offsetTop/3-шар-race). Re-tap-close — ре-тап ОБРАНОЇ картки Tab-2 → selectOutlet(null) (закриває банер без × ; playCardGesture грає в обидва боки; sig-guard → нуль rebuild → живий вузол). Reset-port (з B35) — кнопка «Скинути фільтри» завжди активна (opacity знято з .sh-reset transition + updatePhReset/updateEqReset disabled=false). ───── B34 rev1 (F+G): F — eq-card floating-press (.pressing .92 80ms + WAAPI playEqGesture 1.07@70%/800ms spring; :active bg/border прибрано; делегація #eq-list). G — drill-шіт row-stagger (staggerRows generic; sh-eq 120/800/off160/dist10, фільтр 90/780/dist16). ───── B32 (Phase 3): анім-вибір картки Tab-2 — persistent DOM (sig-guard) + pseudo-opacity ring (composite) + фон+rank на .sel + WAAPI «один жест» (.96→1.045@70%→1, 950ms Пружна). press-втиск 80ms, sel-dur 140ms, reduced-motion гард. ───── B31.3: auto-dark gap фікс (хедер-контролі + ph-banner media-correct). B31.2: статус-ряд →--border-2 (A39). B31.1: чіп-drop .07 + ph-banner dark DEBOZ-well. (.pressing scale.84/down80/ret280-spring; .84 контекст-виняток шіта — менші чіпи→гучніший відгук) через ПЕРСИСТЕНТНІ чіпи (data-v toggle .on БЕЗ innerHTML-rebuild — A54/14.13, щоб spring грав а не снапав) + делегований bindChipPress + прес sh-reset .90 (bindPress). ───── B36 rev1 (E in-flow + re-tap-close + reset-port): E — банер Опція A in-flow reveal (device-locked DUR 600/OFF 0/OUT 600/decel A22; #ph-banner клип-слот анімує height 0→H + .ph-b-in шторка translateY(-100%→0); token-guard проти fast open→close флішу; reduced-motion снап). Замінює buggy B34 max-height-FLIP та B35 HYBRID (2 device-баги: flash на race-close + банер-зависоко від offsetTop-виміру) — обидва прибрані структурно (нема absolute/offsetTop/3-шар-race). Re-tap-close — ре-тап ОБРАНОЇ картки Tab-2 → selectOutlet(null) (закриває банер без × ; playCardGesture грає в обидва боки; sig-guard → нуль rebuild → живий вузол). Reset-port (з B35) — кнопка «Скинути фільтри» завжди активна (opacity знято з .sh-reset transition + updatePhReset/updateEqReset disabled=false). ───── B34 rev1 (F+G): F — eq-card floating-press (.pressing .92 80ms + WAAPI playEqGesture 1.07@70%/800ms spring; :active bg/border прибрано; делегація #eq-list). G — drill-шіт row-stagger (staggerRows generic; sh-eq 120/800/off160/dist10, фільтр 90/780/dist16). ───── B32 (Phase 3): анім-вибір картки Tab-2 — persistent DOM (sig-guard) + pseudo-opacity ring (composite) + фон+rank на .sel + WAAPI «один жест» (.96→1.045@70%→1, 950ms Пружна). press-втиск 80ms, sel-dur 140ms, reduced-motion гард. ───── B31.3: auto-dark gap фікс (хедер-контролі + ph-banner media-correct). B31.2: статус-ряд →--border-2 (A39). B31.1: чіп-drop .07 + ph-banner dark DEBOZ-well.
+const APP_BUILD={batch:44,rev:2,phase:'3',date:'24.06.2026'}; // B44: статус-гейдж .prog-block→.sg (контейнер-гейдж, порт hero-матеріалу eq-grad+per-theme ridge/depth A45/A66; ОБИДВІ інстанції SR+per-outlet). Матеріал LIGHT int40/fillL99/borderL88/sh1/ridge0/barH13/channel.5/gloss.4/pctSize30/valL13/mutL38 · DARK int50/fillL13/borderL30/ridge.38/channel.4/gloss.3/valL92/mutL70 (bench-locked harness v2, device-picked; парам-повзунки --sg-* лишені для re-tune; dark explicit+auto-dark B31.3). MOTION load-in wipe+sheen NON-BLOCKING: fillDur2200/sheenDur1800мс (slow-mo BAKE ×2 — re-validate ×1 на девайсі), ease(.32,.72,0,1), тригер=хук renderOverview + СИГНАТУРНИЙ debounce25с (rev2: сигнатура=дріб+розподіл сегментів → нові дані [зміна SR/аптеки] переграють ЗАВЖДИ=reload-feel; ті самі дані [тап туди-сюди/тема] → снап; Топ↔Фокус persistent-DOM не торкається) + reduced-motion снап. .mb-*/.mini-bar недоторкані (шаряться картками). bench→prod, device-pending у проді (12.9): перевірити БАЛАНС низу (статус+5 карток+тапбар один скрол, без діри над тапбаром). ── B43: hero-tiles eqgrad — світла L0 матовий (int60, tinted-drop 0 3px10px+3 spread, ridge0, mut hsl28, border L88), темна скляний еталон (tone-lift fill L13 + ridge38 top-light, int50). ::before 3px accent-strip → ridge top-light (per-theme). crit-плитка=.ov-crit (eq=crit). + Топ↔Фокус stagger 55/480/10→80/600/14 (ease .32,.72,0,1 decel default; thumb 500/spring НЕ чіпано). bench→prod, device-pending real-context(12.9). ── B41 RING-SHIMMER FIX (Tab-2 ph-card + flt-btn кільце): inset box-shadow→border на .ph-card::after(р.434)+.flt-btn::after(р.413). Корінь (верифіковано B40): банер анімує height 600ms→.screens(flex:1) стискається→.scroll-a resize щокадру→картки+filter-row(всередині scroll-a) сунуться сабпікселем→inset box-shadow кільце ре-растеризується=шимер. Ring-compare v1 device-тест (Konst): inset/outset/+wc ВСІ шимерять (обидва box-shadow-шляхи), border — чіткий ✓. Фікс=CSS-border (малюється як частина боксу, не re-raster), позиція=inset (box-sizing:border-box), opacity-reveal 140ms незмінний. eq-card кільця не має (drill, не select). B40 contain:layout ВІДКАТ (не береться). Хибний урок самері §8 «outset spread фікс» виправлено: outset теж шимерить. device-pending у проді (12.9). ───── B39_2 close ROOT-FIX «примара/розчинення»: .sh-box=ДИТИНА .sh-bg → гасіння opacity батька тане і бокс; тримаємо opacity:1, дим через background rgba(.5→0), бокс з'їжджає off-screen непрозорим (компер мав #bg/#sheet сиблінги). ───── B39: (1) .chip.on (шіт) + .flt-btn.on шіт→LIFT — well/neon→accent-lift 1:1 з Tab-3 .qr-chip.act; LIGHT elev185(chip)/140(flt-btn, нижче бо на сторінці не в таці); DARK tone-lift #264a46/#fff/#8ae5dc (A45/A66 — тон не тінь; слабко→fill-L↑). per-theme+auto-dark; ::after кільце flt-btn лишається. compare-locked, device-pending. (2) Tab-4 баг — eq-flt-btn.on toggle у renderEquipment (дзеркало ph; кнопка «Фільтри» не світилась при активному фільтрі). (3) sheet-CLOSE асиметрія — .closing-стан: close=accel-in cubic-bezier(.4,0,1,1) var(--sh-close)=405ms + scale.98; open лишається 260 decel(.32,.72,0,1); reset-delay 255ms (resetFlt/resetEqFlt — прес видно перед close); A18 visibility/backdrop подовжено під слайд; guard rapid open/close (_ct таймер). slow-mo BAKE ×1.5 (270→405/170→255); device-pending — 405 завелике на ×1 → --sh-close 320-360 (1 токен). ───── B38 (Фаза 3 layout+чіп): (1) Tab-3 LAYOUT-FIX — qr-area space-between→center (один child #qr-content → space-between був no-op→топ-якір → на вищому 15 Pro vh852 надлишок збирався порожнечею знизу well↔чіпи; center ділить верх/низ; tight лишає flex-start). (2) QR width-responsive — ген290 + --qr-sz=clamp(200,min(W*.7125,vh*.34),290); важіль=ШИРИНА (#app≤430; 15Pro 393pt ширший→ ті ж 260 дрібні); XS→267/15Pro→280 (device-pick Konst, 1:1); прибрано tight200/roomy260 !important; стале tier-комент 778/830→вимір 812/852 (обидва roomy). (3) Tab-3 .qr-chip.act — LIGHT #dcefed/#0e2f2c/#33ccbd+elev(.10/.14); DARK tone-lift #264a46/#fff/#8ae5dc+inset-ридж(.26/-.11)/drop.15 (фікс B37 box-shadow:none регресії «активний тоне» на OLED, A45/A39); border-owner=accent через специфічність .qr-chips .qr-chip.act(0,3,0)>статус(0,2,0) обидві теми; dot=status (JS, було accent). Усе device-pending B38. ───── B37 (Фаза 3 фінал): neon тон-даун DARK активний чіп (.chip.on шіт + .qr-chip.act Tab-3 → bg#152826/text#98CDC8/border#3D716C, glow-кільце OFF; device-locked Konst; S-важіль десатурації, не lum — A39 р.610) + прес чіпів ШІТА (.pressing scale.84/down80/ret280-spring; .84 контекст-виняток шіта — менші чіпи→гучніший відгук) через ПЕРСИСТЕНТНІ чіпи (data-v toggle .on БЕЗ innerHTML-rebuild — A54/14.13, щоб spring грав а не снапав) + делегований bindChipPress + прес sh-reset .90 (bindPress). ───── B36 rev1 (E in-flow + re-tap-close + reset-port): E — банер Опція A in-flow reveal (device-locked DUR 600/OFF 0/OUT 600/decel A22; #ph-banner клип-слот анімує height 0→H + .ph-b-in шторка translateY(-100%→0); token-guard проти fast open→close флішу; reduced-motion снап). Замінює buggy B34 max-height-FLIP та B35 HYBRID (2 device-баги: flash на race-close + банер-зависоко від offsetTop-виміру) — обидва прибрані структурно (нема absolute/offsetTop/3-шар-race). Re-tap-close — ре-тап ОБРАНОЇ картки Tab-2 → selectOutlet(null) (закриває банер без × ; playCardGesture грає в обидва боки; sig-guard → нуль rebuild → живий вузол). Reset-port (з B35) — кнопка «Скинути фільтри» завжди активна (opacity знято з .sh-reset transition + updatePhReset/updateEqReset disabled=false). ───── B34 rev1 (F+G): F — eq-card floating-press (.pressing .92 80ms + WAAPI playEqGesture 1.07@70%/800ms spring; :active bg/border прибрано; делегація #eq-list). G — drill-шіт row-stagger (staggerRows generic; sh-eq 120/800/off160/dist10, фільтр 90/780/dist16). ───── B32 (Phase 3): анім-вибір картки Tab-2 — persistent DOM (sig-guard) + pseudo-opacity ring (composite) + фон+rank на .sel + WAAPI «один жест» (.96→1.045@70%→1, 950ms Пружна). press-втиск 80ms, sel-dur 140ms, reduced-motion гард. ───── B31.3: auto-dark gap фікс (хедер-контролі + ph-banner media-correct). B31.2: статус-ряд →--border-2 (A39). B31.1: чіп-drop .07 + ph-banner dark DEBOZ-well. (.pressing scale.84/down80/ret280-spring; .84 контекст-виняток шіта — менші чіпи→гучніший відгук) через ПЕРСИСТЕНТНІ чіпи (data-v toggle .on БЕЗ innerHTML-rebuild — A54/14.13, щоб spring грав а не снапав) + делегований bindChipPress + прес sh-reset .90 (bindPress). ───── B36 rev1 (E in-flow + re-tap-close + reset-port): E — банер Опція A in-flow reveal (device-locked DUR 600/OFF 0/OUT 600/decel A22; #ph-banner клип-слот анімує height 0→H + .ph-b-in шторка translateY(-100%→0); token-guard проти fast open→close флішу; reduced-motion снап). Замінює buggy B34 max-height-FLIP та B35 HYBRID (2 device-баги: flash на race-close + банер-зависоко від offsetTop-виміру) — обидва прибрані структурно (нема absolute/offsetTop/3-шар-race). Re-tap-close — ре-тап ОБРАНОЇ картки Tab-2 → selectOutlet(null) (закриває банер без × ; playCardGesture грає в обидва боки; sig-guard → нуль rebuild → живий вузол). Reset-port (з B35) — кнопка «Скинути фільтри» завжди активна (opacity знято з .sh-reset transition + updatePhReset/updateEqReset disabled=false). ───── B34 rev1 (F+G): F — eq-card floating-press (.pressing .92 80ms + WAAPI playEqGesture 1.07@70%/800ms spring; :active bg/border прибрано; делегація #eq-list). G — drill-шіт row-stagger (staggerRows generic; sh-eq 120/800/off160/dist10, фільтр 90/780/dist16). ───── B32 (Phase 3): анім-вибір картки Tab-2 — persistent DOM (sig-guard) + pseudo-opacity ring (composite) + фон+rank на .sel + WAAPI «один жест» (.96→1.045@70%→1, 950ms Пружна). press-втиск 80ms, sel-dur 140ms, reduced-motion гард. ───── B31.3: auto-dark gap фікс (хедер-контролі + ph-banner media-correct). B31.2: статус-ряд →--border-2 (A39). B31.1: чіп-drop .07 + ph-banner dark DEBOZ-well.
 const ST_LBL = {ok:'ОК',warn:'Перевірити',late:'Давно',crit:'Критично'};
 const ST_D   = {ok:'1–30 дн',warn:'31–60 дн',late:'61–120 дн',crit:'120+ дн'};
 // B30 (A65): GUID prefix-emphasis — перший блок (до першого дефіса) у .guid-pre (ink-2/600), решта muted. Формат: {XXXXXXXX-…}.
@@ -973,23 +1006,28 @@ function renderOverview(){
     const pct=n=>Math.round(n/total*100)+'%';
     // Batch 15 TAB1-OUTLET-A4.1: Smart CTA замість prob-list (planning tool, не fix-it)
     ovEl.innerHTML=`
-      <div class="prog-block">
-        <div class="prog-label">${okC} / ${total} відскановано (${Math.round(okC/total*100)}%)</div>
-        <div class="prog-bar-wrap">
-          <div class="mb-ok" style="width:${pct(okC)}"></div>
-          <div class="mb-warn" style="width:${pct(wC)}"></div>
-          <div class="mb-late" style="width:${pct(lC)}"></div>
-          <div class="mb-crit" style="width:${pct(cC)}"></div>
+      <div class="sg">
+        <div class="sg-top">
+          <div class="sg-pct">${Math.round(okC/total*100)}<span class="u">%</span></div>
+          <div class="sg-frac">${okC} / ${total} відскановано</div>
         </div>
-        <div class="prog-legend">
-          <div class="pl-it"><span class="pl-dot" style="background:var(--ok)"></span>ОК ${okC}</div>
-          <div class="pl-it"><span class="pl-dot" style="background:var(--warn)"></span>Перевірити ${wC}</div>
-          <div class="pl-it"><span class="pl-dot" style="background:var(--late)"></span>Давно ${lC}</div>
-          <div class="pl-it"><span class="pl-dot" style="background:var(--crit)"></span>Критично ${cC}</div>
+        <div class="sg-barwrap">
+          <div class="sg-seg s-ok"   style="width:${pct(okC)}" data-w="${Math.round(okC/total*100)}"></div>
+          <div class="sg-seg s-warn" style="width:${pct(wC)}"  data-w="${Math.round(wC/total*100)}"></div>
+          <div class="sg-seg s-late" style="width:${pct(lC)}"  data-w="${Math.round(lC/total*100)}"></div>
+          <div class="sg-seg s-crit" style="width:${pct(cC)}"  data-w="${Math.round(cC/total*100)}"></div>
+          <div class="sg-sheen"></div>
+        </div>
+        <div class="sg-legend">
+          <div class="sg-li"><span class="sg-dot" style="background:var(--ok)"></span>ОК ${okC}</div>
+          <div class="sg-li"><span class="sg-dot" style="background:var(--warn)"></span>Перевірити ${wC}</div>
+          <div class="sg-li"><span class="sg-dot" style="background:var(--late)"></span>Давно ${lC}</div>
+          <div class="sg-li"><span class="sg-dot" style="background:var(--crit)"></span>Критично ${cC}</div>
         </div>
       </div>
       ${renderOutletCTA(cC, lC, wC, total)}
       <div class="h16"></div>`;
+    sgPlayLoadIn();
     return;
   }
   // SR mode (без вибраної аптеки) — Batch 15 TAB1-CHIP-PAIR
@@ -1019,19 +1057,23 @@ function renderOverview(){
   const focusCount = focusList.length;
 
   ovEl.innerHTML=`
-    <div class="prog-block">
-      <div class="prog-label">${d.ok.toLocaleString('uk')} / ${t.toLocaleString('uk')} відскановано (${pctN}%)</div>
-      <div class="prog-bar-wrap">
-        <div class="mb-ok" style="width:${pct(d.ok)}"></div>
-        <div class="mb-warn" style="width:${pct(d.w)}"></div>
-        <div class="mb-late" style="width:${pct(d.l)}"></div>
-        <div class="mb-crit" style="width:${pct(d.c)}"></div>
+    <div class="sg">
+      <div class="sg-top">
+        <div class="sg-pct">${pctN}<span class="u">%</span></div>
+        <div class="sg-frac">${d.ok.toLocaleString('uk')} / ${t.toLocaleString('uk')} відскановано</div>
       </div>
-      <div class="prog-legend">
-        <div class="pl-it"><span class="pl-dot" style="background:var(--ok)"></span>ОК ${d.ok}</div>
-        <div class="pl-it"><span class="pl-dot" style="background:var(--warn)"></span>Перевірити ${d.w}</div>
-        <div class="pl-it"><span class="pl-dot" style="background:var(--late)"></span>Давно ${d.l}</div>
-        <div class="pl-it"><span class="pl-dot" style="background:var(--crit)"></span>Критично ${d.c}</div>
+      <div class="sg-barwrap">
+        <div class="sg-seg s-ok"   style="width:${pct(d.ok)}" data-w="${Math.round(d.ok/t*100)}"></div>
+        <div class="sg-seg s-warn" style="width:${pct(d.w)}"  data-w="${Math.round(d.w/t*100)}"></div>
+        <div class="sg-seg s-late" style="width:${pct(d.l)}"  data-w="${Math.round(d.l/t*100)}"></div>
+        <div class="sg-seg s-crit" style="width:${pct(d.c)}"  data-w="${Math.round(d.c/t*100)}"></div>
+        <div class="sg-sheen"></div>
+      </div>
+      <div class="sg-legend">
+        <div class="sg-li"><span class="sg-dot" style="background:var(--ok)"></span>ОК ${d.ok}</div>
+        <div class="sg-li"><span class="sg-dot" style="background:var(--warn)"></span>Перевірити ${d.w}</div>
+        <div class="sg-li"><span class="sg-dot" style="background:var(--late)"></span>Давно ${d.l}</div>
+        <div class="sg-li"><span class="sg-dot" style="background:var(--crit)"></span>Критично ${d.c}</div>
       </div>
     </div>
     <div class="ov-tiles">
@@ -1060,6 +1102,36 @@ function renderOverview(){
     <div class="prob-list">${listHTML}</div>
     <div class="h16"></div>`;
   placeTab1Thumb(false); // B42 A54: початкове позиціювання thumb після innerHTML (no-anim)
+  sgPlayLoadIn();
+}
+
+// ── B44 STATUS GAUGE load-in (wipe+sheen, NON-BLOCKING) — вхід на Огляд + debounce 25с + reduced-motion снап ──
+// Хук у кінці кожної .sg-гілки renderOverview (boot + вхід Tab-1 + зміна SR). switchTab1Mode не кличе renderOverview (persistent-DOM) → Топ↔Фокус НЕ переграє. Чисті CSS-transitions+setTimeout → тап/скрол під заїздом працюють.
+let _sgLast=0, _sgSig='';
+function sgPlayLoadIn(){
+  const root=document.getElementById('ov-content'); if(!root) return;
+  const wrap=root.querySelector('.sg'); if(!wrap) return;
+  if(reduceOn()) return;                       // снап: inline width вже фінальний, без блиску
+  const segs=wrap.querySelectorAll('.sg-seg'), sheen=wrap.querySelector('.sg-sheen');
+  // Сигнатура даних гейджа (дріб + розподіл сегментів). Нові дані (зміна SR/аптеки → інший дріб/розподіл) → переграти ЗАВЖДИ (reload-feel статистики). Ті самі дані (тап Огляд↔Аптеки / зміна теми) → дебаунс 25с гасить спам. Топ↔Фокус гейджа не торкається (persistent-DOM, не кличе renderOverview).
+  const sig=(wrap.querySelector('.sg-frac')?.textContent||'')+'|'+[...segs].map(s=>s.dataset.w).join(',');
+  const now=Date.now();
+  if(sig===_sgSig && now-_sgLast<25000) return; // ті самі дані + недавно → снап
+  _sgSig=sig; _sgLast=now;
+  const FILL=2200, SHEEN=1800;                 // slow-mo BAKE (×2 з harness; re-validate ×1 на девайсі — wsd 2.4)
+  if(sheen){ sheen.style.transition='none'; sheen.style.opacity='0'; sheen.style.left='-40%'; }
+  segs.forEach(s=>{ s.style.transition='none'; s.style.width='0%'; });
+  void wrap.offsetWidth;                        // reflow → старт із 0
+  requestAnimationFrame(()=>{
+    segs.forEach(s=>{ s.style.transition='width '+FILL+'ms cubic-bezier(.32,.72,0,1)'; s.style.width=s.dataset.w+'%'; });
+  });
+  if(sheen){
+    setTimeout(()=>{
+      sheen.style.transition='left '+SHEEN+'ms ease-out, opacity '+SHEEN+'ms ease-out';
+      sheen.style.opacity='1'; sheen.style.left='120%';
+      setTimeout(()=>{ sheen.style.transition='opacity 200ms'; sheen.style.opacity='0'; }, SHEEN);
+    }, FILL);
+  }
 }
 
 // Batch 15 TAB1-OUTLET-CTA: Smart CTA з 4 станами — navigational tone
