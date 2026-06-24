@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>QR Lens — Tab-2 backing harness v1</title>
+<title>QR Lens — Tab-2 backing harness v5 (formula)</title>
 <style>
 :root{
   /* === LIGHT база (verbatim з batch44_2) === */
@@ -19,6 +19,7 @@
   --hc-peekx:0;--hc-peeky:4;--hc-backl:90;--hc-backs:22;
   --hc-gap:8;--hc-vall:12;--hc-mutl:46;
   --hc-sellift:3;--hc-selbacks:42;
+  --hc-bodyhue:214;--hc-contact:.14;--hc-shelfdrop:.10;
   --hc-pressdown:90;--hc-pressscale:.97;--hc-pressy:3;--hc-gestdur:520;--hc-slow:1;
 }
 [data-theme="dark"]{
@@ -55,13 +56,17 @@ body{background:var(--bg);color:var(--ink);font-family:'Manrope',-apple-system,s
 .ph-list{display:flex;flex-direction:column;gap:calc(var(--hc-gap)*1px);padding:10px 16px}
 .ph-row{position:relative}
 .ph-back{position:absolute;inset:0;border-radius:var(--rs);z-index:0;
-  background:hsl(174 calc(var(--hc-backs)*1%) calc(var(--hc-backl)*1%));
+  background:linear-gradient(180deg,
+    hsl(174 calc(var(--hc-backs)*1%) calc((var(--hc-backl) - 5)*1%)) 0%,
+    hsl(174 calc(var(--hc-backs)*1%) calc((var(--hc-backl) + 5)*1%)) 100%);
+  box-shadow:0 4px 10px rgba(20,40,35,var(--hc-shelfdrop));
   transform:translate(calc(var(--hc-peekx)*1px),calc(var(--hc-peeky)*1px))}
 
 .ph-card{position:relative;z-index:1;--rest-y:0px;
-  background:linear-gradient(180deg,hsla(0,0%,100%,var(--hc-gloss)) 0,transparent 40%),
+  background:linear-gradient(0deg,rgba(8,14,12,var(--hc-contact)) 0,transparent 5px),
+            linear-gradient(180deg,hsla(0,0%,100%,var(--hc-gloss)) 0,transparent 40%),
             linear-gradient(180deg,hsla(0,0%,100%,var(--hc-ridge)) 0,transparent 10px),
-            linear-gradient(180deg,transparent 0,transparent 50%,hsla(214,18%,70%,calc(var(--hc-glass)*.28)) 100%),
+            linear-gradient(180deg,transparent 0,transparent 50%,hsl(var(--hc-bodyhue) 18% 70% / calc(var(--hc-glass)*.28)) 100%),
             hsl(214 calc(var(--hc-cards)*1%) calc(var(--hc-cardl)*1%));
   border-radius:var(--rs);padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;
   box-shadow:inset 0 1px 0 hsla(0,0%,100%,var(--hc-gloss)),0 1px 2px rgba(20,40,35,var(--hc-shadow)),0 3px 8px rgba(20,40,35,var(--hc-shadow));
@@ -73,6 +78,7 @@ body{background:var(--bg);color:var(--ink);font-family:'Manrope',-apple-system,s
 .ph-card.pressing{transform:translateY(calc(var(--rest-y) + var(--hc-pressy)*1px)) scale(var(--hc-pressscale));
   transition:transform calc(var(--hc-pressdown)*var(--hc-slow)*1ms) linear}
 .ph-card.sel{--rest-y:calc(var(--hc-sellift)*-1px)}
+[data-theme="light"] .ph-list.stacked .ph-card{border:1px solid var(--border)}
 
 .ph-rank{width:22px;height:22px;border-radius:50%;background:var(--bg-soft);display:flex;align-items:center;
   justify-content:center;font-size:10px;font-weight:800;color:var(--muted);flex-shrink:0;
@@ -92,7 +98,9 @@ body{background:var(--bg);color:var(--ink);font-family:'Manrope',-apple-system,s
 .ph-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
 /* selection sub-mode (stacked) */
-.ph-list.stacked .ph-card.sel .ph-back{background:hsl(174 calc(var(--hc-selbacks)*1%) calc(var(--hc-backl)*1%))}
+.ph-list.stacked .ph-card.sel .ph-back{background:linear-gradient(180deg,
+  hsl(174 calc(var(--hc-selbacks)*1%) calc((var(--hc-backl) - 5)*1%)) 0%,
+  hsl(174 calc(var(--hc-selbacks)*1%) calc((var(--hc-backl) + 6)*1%)) 100%)}
 .ph-list.stacked.m-ring .ph-card.sel,.ph-list.stacked.m-ring .ph-card.sel .ph-back{}
 .ph-list.stacked.m-ring .ph-card.sel{--rest-y:0px}
 .ph-list.stacked.m-ring .ph-card.sel::after,.ph-list.stacked.m-both .ph-card.sel::after{opacity:1}
@@ -165,6 +173,7 @@ body{background:var(--bg);color:var(--ink);font-family:'Manrope',-apple-system,s
       <div class="tgl" data-grp="theme"><button data-v="dark" class="on">🌙 dark</button><button data-v="light">☀ light</button></div>
       <div class="tgl" data-grp="ab"><button data-v="stacked" class="on">stacked</button><button data-v="current">current</button></div>
       <div class="tgl" data-grp="mode"><button data-v="lift" class="on">sel: lift</button><button data-v="ring">ring</button><button data-v="both">both</button></div>
+      <div class="tgl" data-grp="body"><button data-v="neutral" class="on">body: neutral</button><button data-v="teal">teal</button></div>
       <div class="tgl" data-grp="slow"><button data-v="1" class="on">×1</button><button data-v="2">×2</button><button data-v="3">×3</button></div>
     </div>
     <div id="presets"></div>
@@ -195,11 +204,13 @@ const SLIDERS=[
   ['hc-shadow','shadow (light-only живий)',0,.4,.01,'CARD',['light','dark']],
   ['hc-glass','glass (light скло-body)',0,1,.01,'CARD',['light','dark']],
   ['hc-gloss','gloss (top-sheen блік)',0,1,.01,'CARD',['light','dark']],
+  ['hc-contact','contact-edge (низ-лип)',0,.5,.02,'CARD',['light','dark']],
   ['hc-peeky','peek-Y (виступ низ)',0,16,1,'BACKING',['light','dark']],
   ['hc-peekx','peek-X (виступ право)',0,12,1,'BACKING',['light','dark']],
   ['hc-backl','backing-L',2,100,1,'BACKING',['light','dark']],
   ['hc-backs','backing-S (teal)',0,60,1,'BACKING',['light','dark']],
   ['hc-gap','row-gap',2,18,1,'BACKING',['light','dark']],
+  ['hc-shelfdrop','shelf-drop (light грунт)',0,.2,.01,'BACKING',['light','dark']],
   ['hc-vall','val-L (текст осн.)',2,100,1,'TEXT',['light','dark']],
   ['hc-mutl','mut-L (текст тихий)',2,90,1,'TEXT',['light','dark']],
   ['hc-sellift','sel-lift (виступ обраної)',0,12,1,'SELECT',['light','dark']],
@@ -212,10 +223,10 @@ const SLIDERS=[
 
 // per-theme значення (seed)
 const V={
-  light:{'hc-cardl':98,'hc-cards':6,'hc-ridge':.30,'hc-shadow':.07,'hc-glass':.5,'hc-gloss':.4,'hc-peeky':4,'hc-peekx':0,'hc-backl':86,'hc-backs':24,'hc-gap':12,'hc-vall':12,'hc-mutl':46,'hc-sellift':3,'hc-selbacks':40,'hc-pressdown':90,'hc-pressscale':.97,'hc-pressy':3,'hc-gestdur':520},
-  dark:{'hc-cardl':17,'hc-cards':18,'hc-ridge':.10,'hc-shadow':.26,'hc-glass':0,'hc-gloss':0,'hc-peeky':4,'hc-peekx':0,'hc-backl':13,'hc-backs':34,'hc-gap':12,'hc-vall':92,'hc-mutl':60,'hc-sellift':3,'hc-selbacks':50,'hc-pressdown':90,'hc-pressscale':.97,'hc-pressy':3,'hc-gestdur':520}
+  light:{'hc-cardl':98,'hc-cards':6,'hc-ridge':.15,'hc-shadow':.06,'hc-glass':.35,'hc-gloss':.42,'hc-contact':.14,'hc-peeky':4,'hc-peekx':0,'hc-backl':85,'hc-backs':28,'hc-gap':12,'hc-shelfdrop':.10,'hc-vall':12,'hc-mutl':46,'hc-sellift':3,'hc-selbacks':46,'hc-pressdown':90,'hc-pressscale':.97,'hc-pressy':3,'hc-gestdur':520},
+  dark:{'hc-cardl':14,'hc-cards':18,'hc-ridge':.14,'hc-shadow':.24,'hc-glass':0,'hc-gloss':0,'hc-contact':.20,'hc-peeky':5,'hc-peekx':0,'hc-backl':25,'hc-backs':28,'hc-gap':13,'hc-shelfdrop':.10,'hc-vall':92,'hc-mutl':60,'hc-sellift':3,'hc-selbacks':50,'hc-pressdown':90,'hc-pressscale':.97,'hc-pressy':3,'hc-gestdur':520}
 };
-const S={theme:'dark',ab:'stacked',mode:'lift',slow:1,sel:-1};
+const S={theme:'dark',ab:'stacked',mode:'lift',bodytint:'neutral',slow:1,sel:-1};
 
 const list=document.getElementById('ph-list');
 function renderList(){
@@ -237,6 +248,7 @@ function applyVars(){
   const v=V[S.theme],root=document.documentElement;
   for(const k in v) root.style.setProperty('--'+k,v[k]);
   root.style.setProperty('--hc-slow',S.slow);
+  root.style.setProperty('--hc-bodyhue',S.bodytint==='teal'?170:214);
   document.documentElement.setAttribute('data-theme',S.theme);
   list.className='ph-list '+S.ab+' m-'+S.mode;
 }
@@ -267,7 +279,7 @@ function syncSliders(){
 }
 function writeOut(){
   const v=V[S.theme];
-  let s=S.theme.toUpperCase()+' ['+S.ab+'/sel-'+S.mode+']  ';
+  let s=S.theme.toUpperCase()+' ['+S.ab+'/sel-'+S.mode+'/body-'+S.bodytint+']  ';
   s+=SLIDERS.map(x=>x[0].replace('hc-','')+':'+v[x[0]]).join(' · ');
   document.getElementById('out').value=s;
 }
@@ -275,15 +287,12 @@ function writeOut(){
 // === МОЇ СТАВКИ (пресети матеріалу, per-theme) ===
 const PRESETS={
   dark:[
-    {n:'D1 shadow-lip',v:{'hc-cardl':17,'hc-cards':18,'hc-ridge':.10,'hc-shadow':.26,'hc-glass':0,'hc-gloss':0,'hc-peeky':4,'hc-peekx':0,'hc-backl':12,'hc-backs':36,'hc-gap':12,'hc-selbacks':50}},
-    {n:'D2 glow-shelf',v:{'hc-cardl':16,'hc-cards':18,'hc-ridge':.12,'hc-shadow':.22,'hc-glass':0,'hc-gloss':0,'hc-peeky':4,'hc-peekx':0,'hc-backl':22,'hc-backs':30,'hc-gap':12,'hc-selbacks':48}},
-    {n:'D3 quiet',v:{'hc-cardl':17,'hc-cards':16,'hc-ridge':.14,'hc-shadow':.24,'hc-glass':0,'hc-gloss':0,'hc-peeky':2,'hc-peekx':0,'hc-backl':14,'hc-backs':20,'hc-gap':10,'hc-selbacks':44}},
-    {n:'D4 edge-lift',v:{'hc-cardl':17,'hc-cards':18,'hc-ridge':.16,'hc-shadow':.30,'hc-glass':0,'hc-gloss':0,'hc-peeky':5,'hc-peekx':0,'hc-backl':13,'hc-backs':34,'hc-gap':13,'hc-selbacks':52}}
+    {n:'D-NS glow-shelf',v:{'hc-cardl':14,'hc-cards':18,'hc-ridge':.14,'hc-shadow':.24,'hc-glass':0,'hc-gloss':0,'hc-contact':.20,'hc-peeky':5,'hc-peekx':0,'hc-backl':25,'hc-backs':28,'hc-gap':13,'hc-shelfdrop':.10,'hc-selbacks':50}},
+    {n:'D-quiet',v:{'hc-cardl':15,'hc-cards':16,'hc-ridge':.12,'hc-shadow':.20,'hc-glass':0,'hc-gloss':0,'hc-contact':.14,'hc-peeky':3,'hc-peekx':0,'hc-backl':21,'hc-backs':24,'hc-gap':11,'hc-shelfdrop':.06,'hc-selbacks':46}}
   ],
   light:[
-    {n:'L1 soft-float',v:{'hc-cardl':98,'hc-cards':6,'hc-ridge':.30,'hc-shadow':.08,'hc-glass':.45,'hc-gloss':.40,'hc-peeky':4,'hc-peekx':0,'hc-backl':88,'hc-backs':22,'hc-gap':12,'hc-selbacks':40}},
-    {n:'L2 glass-shelf',v:{'hc-cardl':97,'hc-cards':7,'hc-ridge':.25,'hc-shadow':.06,'hc-glass':.60,'hc-gloss':.50,'hc-peeky':5,'hc-peekx':0,'hc-backl':84,'hc-backs':30,'hc-gap':13,'hc-selbacks':44}},
-    {n:'L3 whisper',v:{'hc-cardl':99,'hc-cards':4,'hc-ridge':.20,'hc-shadow':.05,'hc-glass':.28,'hc-gloss':.22,'hc-peeky':3,'hc-peekx':0,'hc-backl':90,'hc-backs':16,'hc-gap':11,'hc-selbacks':38}}
+    {n:'L-NS ceramic',v:{'hc-cardl':98,'hc-cards':6,'hc-ridge':.15,'hc-shadow':.06,'hc-glass':.35,'hc-gloss':.42,'hc-contact':.14,'hc-peeky':4,'hc-peekx':0,'hc-backl':85,'hc-backs':28,'hc-gap':12,'hc-shelfdrop':.10,'hc-selbacks':46}},
+    {n:'L-alt paper',v:{'hc-cardl':99,'hc-cards':4,'hc-ridge':.10,'hc-shadow':.09,'hc-glass':.22,'hc-gloss':.25,'hc-contact':.18,'hc-peeky':6,'hc-peekx':0,'hc-backl':88,'hc-backs':24,'hc-gap':13,'hc-shelfdrop':.12,'hc-selbacks':44}}
   ]
 };
 function renderPresets(){
@@ -306,6 +315,7 @@ document.querySelectorAll('.tgl').forEach(tg=>{
       tg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
       const g=tg.dataset.grp,val=b.dataset.v;
       if(g==='theme')S.theme=val;else if(g==='ab')S.ab=val;else if(g==='mode')S.mode=val;
+      else if(g==='body')S.bodytint=val;
       else if(g==='slow')S.slow=parseInt(val);
       applyVars();syncSliders();writeOut();
       if(g==='theme')renderPresets();
