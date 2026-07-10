@@ -82,6 +82,16 @@ select:focus{outline:none;border-color:var(--teal)}
 .sec-div::after{content:'';flex:1;height:1px;background:var(--border)}
 .sec-badge{font-size:11px;background:var(--accent);color:var(--teal);padding:2px 7px;border-radius:10px;font-weight:600}
 
+/* Brand accordion */
+.brand-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 4px 10px 0;cursor:pointer;border-bottom:1.5px solid var(--border);-webkit-tap-highlight-color:transparent}
+.brand-hdr:active{background:var(--accent)}
+.brand-hdr-l{display:flex;align-items:center;gap:8px}
+.brand-arr{font-size:16px;color:var(--teal);width:18px;line-height:1}
+.brand-nm{font-size:14px;font-weight:700;color:var(--text)}
+.brand-st{font-size:12px;color:var(--muted);font-weight:500}
+.brand-st.done{color:#27ae60;font-weight:700}
+.brand-body{padding-left:4px}
+
 /* SKU rows */
 .sku-row{padding:10px 0;border-bottom:1px solid var(--border)}
 .sku-name{font-size:13px;font-weight:500;line-height:1.4;margin-bottom:6px;color:var(--text)}
@@ -393,42 +403,112 @@ function onPhSel(){
 }
 
 // ========== FILL ==========
+let openBrands={};
+function getBrand(sku){
+  const n=sku.n;
+  if(/^(Стрепсілс|СТРЕПСІЛС)/i.test(n)) return 'Стрепсілс';
+  if(/^Нурофен/i.test(n))               return 'Нурофен';
+  if(/^Гавіскон/i.test(n))              return 'Гавіскон';
+  if(/^(Durex|Гель Durex)/i.test(n))    return 'Durex';
+  if(/^Contex/i.test(n))                return 'Contex';
+  if(/^(Evitest|Eviplan)/i.test(n))     return 'Evitest / Eviplan';
+  return 'Інше';
+}
+function bKey(cat,brand){return(cat+'_'+brand).replace(/[\s\/]/g,'_')}
+
+function toggleBrand(cat,brand){
+  const k=bKey(cat,brand);
+  openBrands[k]=!openBrands[k];
+  const body=document.getElementById('bb-'+k);
+  const arr=document.getElementById('ba-'+k);
+  if(body)body.style.display=openBrands[k]?'block':'none';
+  if(arr)arr.textContent=openBrands[k]?'▾':'▸';
+}
+
+function checkBrandDone(cat,brand){
+  const k=bKey(cat,brand);
+  const data=ST.phs[curPhId]||{};
+  const bSkus=MSL.filter(s=>s.c===cat&&getBrand(s)===brand);
+  const filled=bSkus.filter(s=>data[s.k]!==undefined).length;
+  const total=bSkus.length;
+  const done=filled===total;
+  const stat=document.getElementById('bs-'+k);
+  if(stat){stat.textContent=done?'✓ готово':filled+'/'+total;stat.className='brand-st'+(done?' done':'')}
+  if(done&&openBrands[k]){
+    openBrands[k]=false;
+    const body=document.getElementById('bb-'+k);
+    const arr=document.getElementById('ba-'+k);
+    if(body)body.style.display='none';
+    if(arr)arr.textContent='▸';
+  }
+}
+
 function openFill(phId){
   const ph=getPhById(phId); if(!ph)return;
   curPhId=phId;
+  openBrands={};  // reset accordion state on each pharmacy open
   if(!ST.phs[phId]){ST.phs[phId]={};ST.date=today();saveST()}
   document.getElementById('fill-city').textContent=ph.city;
   document.getElementById('fill-addr').textContent=ph.addr;
   renderFill(ph);
   show('s-fill');
 }
+
 function renderFill(ph){
   const data=ST.phs[curPhId]||{};
   const otc=MSL.filter(s=>s.c==='OTC');
   const iw=MSL.filter(s=>s.c==='IW');
 
+  function groupByBrand(skus){
+    const map={};const order=[];
+    skus.forEach(s=>{const b=getBrand(s);if(!map[b]){map[b]=[];order.push(b)}map[b].push(s)});
+    return order.map(b=>({brand:b,skus:map[b]}));
+  }
+
   function sec(skus,cat,lbl){
     const pcat=cat==='OTC'?ph.oTC:ph.iW;
+    const groups=groupByBrand(skus);
     let h=`<div class="sec-div">${lbl}<span class="sec-badge">${skus.length} SKU · кат. ${pcat}</span></div>`;
-    skus.forEach(s=>{
-      const msl=getMSLval(s,pcat);
-      const saved=data[s.k];
-      const val=saved!==undefined?saved:'';
-      const order=val!==''?Math.max(0,msl-Number(val)):msl;
-      const ocls=val===''?'dash':(order===0?'zero':'');
-      const otxt=val===''?'—':order;
-      h+=`<div class="sku-row">
-        <div class="sku-name">${s.n}</div>
-        <div class="sku-fields">
-          <div class="sku-msl">MSL: <b>${msl}</b></div>
-          <input class="sku-input" type="number" min="0" inputmode="numeric"
-            value="${val}" placeholder="—"
-            data-k="${s.k}" data-m="${msl}"
-            oninput="onInput(this)">
-          <span class="sku-arrow">→</span>
-          <span class="sku-order ${ocls}" id="o${s.k}">${otxt}</span>
+
+    groups.forEach(({brand,skus:bSkus})=>{
+      const k=bKey(cat,brand);
+      const filled=bSkus.filter(s=>data[s.k]!==undefined).length;
+      const total=bSkus.length;
+      const done=filled===total;
+      // default: open unless already done
+      if(openBrands[k]===undefined) openBrands[k]=!done;
+      const isOpen=openBrands[k];
+
+      h+=`<div class="brand-hdr" onclick="toggleBrand('${cat}','${brand}')">
+        <div class="brand-hdr-l">
+          <span class="brand-arr" id="ba-${k}">${isOpen?'▾':'▸'}</span>
+          <span class="brand-nm">${brand}</span>
         </div>
+        <span class="brand-st${done?' done':''}" id="bs-${k}">${done?'✓ готово':filled+'/'+total}</span>
       </div>`;
+
+      h+=`<div class="brand-body" id="bb-${k}" style="display:${isOpen?'block':'none'}">`;
+      bSkus.forEach(s=>{
+        const msl=getMSLval(s,pcat);
+        const saved=data[s.k];
+        const val=saved!==undefined?saved:'';
+        const order=val!==''?Math.max(0,msl-Number(val)):msl;
+        const ocls=val===''?'dash':(order===0?'zero':'');
+        const otxt=val===''?'—':order;
+        h+=`<div class="sku-row">
+          <div class="sku-name">${s.n}</div>
+          <div class="sku-fields">
+            <div class="sku-msl">MSL: <b>${msl}</b></div>
+            <input class="sku-input" type="number" min="0" inputmode="numeric"
+              value="${val}" placeholder="—"
+              data-k="${s.k}" data-m="${msl}" data-cat="${cat}" data-brand="${brand}"
+              oninput="onInput(this)">
+            <span class="sku-arrow">→</span>
+            <span class="sku-order ${ocls}" id="o${s.k}">${otxt}</span>
+          </div>
+        </div>`;
+      });
+      h+=`</div>`;
     });
     return h;
   }
@@ -436,9 +516,12 @@ function renderFill(ph){
   document.getElementById('fill-body').innerHTML=sec(otc,'OTC','OTC')+sec(iw,'IW','IW');
   updProg();
 }
+
 function onInput(inp){
   const k=Number(inp.dataset.k);
   const m=Number(inp.dataset.m);
+  const cat=inp.dataset.cat;
+  const brand=inp.dataset.brand;
   const v=inp.value.trim();
   if(!ST.phs[curPhId])ST.phs[curPhId]={};
   if(v===''){delete ST.phs[curPhId][k]}
@@ -447,6 +530,7 @@ function onInput(inp){
   const el=document.getElementById('o'+k);
   if(v===''){el.textContent='—';el.className='sku-order dash'}
   else{const o=Math.max(0,m-Number(v));el.textContent=o;el.className='sku-order'+(o===0?' zero':'')}
+  checkBrandDone(cat,brand);
   updProg();
 }
 function updProg(){
@@ -474,6 +558,18 @@ function exportXLSX(){
   };
   const sPlain={
     font:{sz:11,name:'Calibri',color:{rgb:'0E2841'}}
+  };
+  // Залишок column — peach/apricot (Accent2 #E97132 from file theme)
+  const sZalHdr={
+    fill:{patternType:'solid',fgColor:{rgb:'E97132'}},
+    font:{bold:true,color:{rgb:'FFFFFF'},sz:11,name:'Calibri'},
+    alignment:{horizontal:'center',vertical:'center'},
+    border:{bottom:{style:'thin',color:{rgb:'FFFFFF'}}}
+  };
+  const sZalCell={
+    fill:{patternType:'solid',fgColor:{rgb:'FAD5C3'}},
+    font:{sz:11,name:'Calibri',color:{rgb:'5C2800'}},
+    alignment:{horizontal:'center'}
   };
 
   const WB=XLSX.utils.book_new();
@@ -506,11 +602,16 @@ function exportXLSX(){
 
   // Apply styles per cell
   const apR=apRows.length, apC=AP_HDR.length;
+  const ZAL_COL=12; // Залишок column index
   for(let r=0;r<apR;r++){
     for(let c=0;c<apC;c++){
       const addr=XLSX.utils.encode_cell({r,c});
       if(!wsAP[addr])wsAP[addr]={t:'z',v:null};
-      wsAP[addr].s = r===0 ? sHdr : (r%2===1 ? sBand : sPlain);
+      if(c===ZAL_COL){
+        wsAP[addr].s = r===0 ? sZalHdr : sZalCell;
+      } else {
+        wsAP[addr].s = r===0 ? sHdr : (r%2===1 ? sBand : sPlain);
+      }
     }
   }
 
