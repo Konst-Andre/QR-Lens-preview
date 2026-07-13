@@ -638,7 +638,7 @@ function brandCard(bk,tier,data){
       h+='<div class="row'+settled+' lv-'+lv+'">'
         +'<div class="info"><div class="rn">'+vSpan+'<span class="rn-tag">'+pk+ck+'</span></div><div class="rm">'+meta+'</div></div>'
         +'<div class="fwrap"><div class="fld'+(saved===0?' is-zero':'')+'">'
-        +'<input class="fld-in" type="number" min="0" inputmode="numeric" value="'+(has?saved:'')+'" placeholder="'+norm+'" data-k="'+r.k+'" data-m="'+norm+'" data-bk="'+bk+'" oninput="onInput(this)"></div>'
+        +'<input class="fld-in" type="text" inputmode="numeric" pattern="[0-9]*" value="'+(has?saved:'')+'" placeholder="'+norm+'" data-k="'+r.k+'" data-m="'+norm+'" data-bk="'+bk+'" oninput="onInput(this)"></div>'
         +dchipHtml(lv,saved,norm)+'</div></div>';
     });
     h+='</div>';
