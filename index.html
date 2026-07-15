@@ -185,6 +185,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
 .ring{position:relative;width:var(--ringSize);height:var(--ringSize);flex:0 0 auto}
 .ring svg{display:block}
 .ring circle{fill:none}
+@keyframes pulseF{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1)}}
+.ring.pulsing{animation:pulseF 460ms cubic-bezier(.34,1.56,.64,1)}
 .amid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;line-height:1}
 .ring.arcm .amid{justify-content:center;padding-bottom:calc(var(--ringSize)*.15)}
 .fig{font-size:var(--numSize);font-weight:var(--numWeight);color:var(--text);line-height:.95;font-variant-numeric:tabular-nums}
@@ -622,7 +624,7 @@ const LAYOUT={
 const OTC_BRANDS=['strep','nuro','gavis'];
 const IW_BRANDS=['durex','contex','evi'];
 
-const APP_BUILD = 'v2.2.1-node5.b8';
+const APP_BUILD = 'v2.3.0-arc.b9';
 const NETWORK = { name:'Фармастор', tagline:'інструмент залишків', tg:'t.me/Konst_Andre' };
 const MSL_BY_K={}; MSL.forEach(function(s){MSL_BY_K[s.k]=s;});
 const TOTAL = MSL.length; // 83
@@ -765,8 +767,31 @@ function ringSVG(f){
   var d=62,w=5,r=(d-w)/2,cx=d/2,style='transform:rotate(135deg);transform-origin:center',
       target=(75-0.75*hPct(f)).toFixed(2);
   var track='<circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" pathLength="100" stroke="var(--ringTrack)" stroke-width="'+w+'" stroke-linecap="round" stroke-dasharray="75 100" style="'+style+'"/>';
-  var fill=f>0?'<circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" pathLength="100" stroke="'+hFill(f)+'" stroke-width="'+w+'" stroke-linecap="round" stroke-dasharray="75 100" stroke-dashoffset="'+target+'" style="'+style+'"/>':'';
+  var fill=f>0?'<circle class="arcfill" cx="'+cx+'" cy="'+cx+'" r="'+r+'" pathLength="100" stroke="'+hFill(f)+'" stroke-width="'+w+'" stroke-linecap="round" stroke-dasharray="75 100" stroke-dashoffset="'+target+'" style="'+style+'"/>':'';
   return '<svg width="'+d+'" height="'+d+'">'+track+fill+'</svg>';
+}
+/* ---- arc-fill motion (§5.2 · A70 dashoffset-only · scale-dur · грає ЛИШЕ на щойно-змінене кільце, НЕ на mount) ---- */
+var _homeSnap=null;                  // {px: filled} на момент останнього рендера home
+var ARC={floor:600,ceil:1600,exp:1}; // dur = floor+(ceil-floor)*(Δpp/100)^exp · device✓ harness v2 (scale·600·1600·lin)
+function reduceOn(){return !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches);}
+function arcDur(oldF,newF){var d=Math.abs(hPct(newF)-hPct(oldF));return ARC.floor+(ARC.ceil-ARC.floor)*Math.pow(d/100,ARC.exp);}
+function arcOff(f){return (75-75*f/TOTAL).toFixed(2);}                 // проміжний (дробовий) offset
+function animRing(card,oldF,newF){
+  var fill=card.querySelector('.arcfill'),fig=card.querySelector('.fig'),aw=card.querySelector('.arcword');
+  if(!fill)return;
+  if(reduceOn()){fill.setAttribute('stroke-dashoffset',(75-0.75*hPct(newF)).toFixed(2));if(fig)fig.textContent=newF;if(aw)aw.textContent=hPct(newF)+'%';return;}
+  var dur=arcDur(oldF,newF),start=null;
+  fill.setAttribute('stroke-dashoffset',arcOff(oldF));if(fig)fig.textContent=oldF;if(aw)aw.textContent=hPct(oldF)+'%';
+  function tick(now){
+    if(start===null)start=now;
+    var t=Math.min(1,(now-start)/dur),e=1-Math.pow(1-t,3);            // decel sweep (LOCK)
+    var f=oldF+(newF-oldF)*e;
+    fill.setAttribute('stroke-dashoffset',arcOff(f));if(fig)fig.textContent=Math.round(f);if(aw)aw.textContent=Math.round(f/TOTAL*100)+'%';
+    if(t<1){requestAnimationFrame(tick);}
+    else{fill.setAttribute('stroke-dashoffset',(75-0.75*hPct(newF)).toFixed(2));if(fig)fig.textContent=newF;if(aw)aw.textContent=hPct(newF)+'%';  // снап на rest-формулу ringSVG
+      if(newF>=TOTAL&&oldF<TOTAL){var ring=card.querySelector('.ring');if(ring){ring.classList.remove('pulsing');void ring.offsetWidth;ring.classList.add('pulsing');}}}
+  }
+  requestAnimationFrame(tick);
 }
 function homeModel(){
   return PH.map(function(ph,i){
@@ -808,7 +833,8 @@ function hCard(p){
 }
 function hSort(a,b){return a.city.localeCompare(b.city,'uk')||a.addr.localeCompare(b.addr,'uk');}
 function renderHome(){
-  var M=homeModel().filter(topMatch);
+  var full=homeModel();
+  var M=full.filter(topMatch);
   var h;
   if(!M.length){
     h='<div class="empty">Нічого не знайдено у «'+esc(S.area)+(S.city?' · '+esc(S.city):'')+
@@ -819,8 +845,20 @@ function renderHome(){
     h=act.map(hCard).join('');
     if(tr.length)h+='<div class="sec">Перенесені ('+tr.length+')<span class="ln"></span></div>'+tr.map(hCard).join('');
   }
-  document.getElementById('homeList').innerHTML=h;
+  var list=document.getElementById('homeList');
+  list.innerHTML=h;
   var c=document.getElementById('bcCount');if(c)c.textContent=M.length+' апт.';
+  // arc-fill: грає ЛИШЕ на щойно-змінене видиме кільце (snapshot-diff); НЕ на першому mount, НЕ на фільтр/band-swap
+  if(_homeSnap){
+    M.forEach(function(p){
+      if(p.state!=='ready')return;                       // дуга є лише в ready
+      var o=_homeSnap[p.px];
+      if(o===undefined||o===p.filled)return;             // без змін / новоз'явлена в фільтрі → не анімуємо
+      var card=list.querySelector('.card[data-px="'+p.px+'"]');
+      if(card)animRing(card,o,p.filled);
+    });
+  }
+  var snap={};full.forEach(function(p){snap[p.px]=p.filled;});_homeSnap=snap;
 }
 
 /* ---- fill ---- */
