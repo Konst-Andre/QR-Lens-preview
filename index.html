@@ -129,6 +129,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
 .sheet-item .si-tx b{display:block;font-size:14px;font-weight:700;color:var(--text)}
 .sheet-item .si-tx span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
 .sheet-item.danger .si-ic,.sheet-item.danger b{color:var(--crit)}
+.si-ic svg{vertical-align:middle}
+/* ===== About sheet (A58) ===== */
+.about-hd{display:flex;align-items:center;gap:12px;padding:6px 20px 14px}
+.about-logo{width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font:800 22px/1 var(--font);color:#fff;background:linear-gradient(180deg,color-mix(in srgb,#fff 16%,var(--accent)),var(--accent));
+  box-shadow:0 2px 8px -2px color-mix(in srgb,var(--accent) 40%,transparent)}
+[data-theme="dark"] .about-logo{background:linear-gradient(180deg,hsl(163 55% 34%),hsl(163 55% 30%));box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.about-name{font:800 16px/1.15 var(--font);color:var(--text)}
+.about-tag{font:600 12px/1.2 var(--font);color:var(--muted);margin-top:2px}
+.about-row{display:flex;justify-content:space-between;align-items:center;padding:11px 20px;font:600 13px/1 var(--font);color:var(--text-2);border-top:1px solid var(--border-subtle)}
+.about-row span:last-child{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums}
+.about-credit{padding:14px 20px 6px;font:600 12.5px/1.4 var(--font);color:var(--muted)}
+.about-credit b{color:var(--text);font-weight:700}
+.tgpill{display:flex;align-items:center;gap:8px;margin:2px 20px 8px;padding:8px 12px;border-radius:12px;text-decoration:none;
+  font:700 12.5px/1 var(--font);color:#229ED9;background:color-mix(in srgb,#229ED9 8%,transparent);
+  border:1px solid color-mix(in srgb,#229ED9 28%,transparent);transition:transform .22s var(--spring)}
+.tgpill.is-pressed{transform:scale(.96);transition-duration:.06s}
+.tg-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;background:#229ED9}
+.tg-arr{margin-left:auto;opacity:.7;font-size:13px}
 
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(12px);
   z-index:60;max-width:88%;background:var(--text);color:var(--bg);font:700 12.5px/1.35 var(--font);
@@ -353,11 +372,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
   padding:calc(var(--chPadY)*1px) calc(var(--chPadX)*1px);border-radius:calc(var(--chRad)*1px);
   color:var(--sig);background:var(--cardBg);border:1px solid color-mix(in srgb,var(--sig) calc(var(--chBorderInt)*1%),transparent)}
 
-/* copy CTA */
-.copy-cta{margin:18px 14px 6px;width:calc(100% - 28px);padding:14px;border:none;border-radius:12px;
-  background:var(--accent);color:#fff;font:800 14px/1 var(--font);cursor:pointer;
-  transition:transform .22s var(--spring),filter .12s ease}
-.copy-cta.is-pressed{transform:scale(.96);transition-duration:.06s}
+/* copy + Excel CTA row (§4 material LOCK b11, layout 2.5:1) */
+.cta-row{display:flex;gap:10px;margin:18px 14px 6px}
+.btn-copy{flex:2.5;padding:14px;border:none;border-radius:12px;color:#fff;
+  font:800 14px/1 var(--font);cursor:pointer;transition:transform .22s var(--spring),filter .12s ease;
+  background:linear-gradient(180deg,color-mix(in srgb,#fff 16%,var(--accent)),var(--accent));
+  box-shadow:0 3px 10px -3px color-mix(in srgb,var(--accent) 27%,transparent),0 1px 2px rgba(20,50,42,.14)}
+.btn-form{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 8px;
+  border-radius:12px;text-decoration:none;font:800 13px/1 var(--font);cursor:pointer;
+  transition:transform .22s var(--spring),filter .12s ease;
+  background:color-mix(in srgb,var(--accent) 9%,#fff);
+  border:1.5px solid color-mix(in srgb,var(--accent) 20%,transparent);
+  color:color-mix(in srgb,var(--accent-ink) 63%,var(--accent));
+  box-shadow:0 1.5px 4px -2px rgba(20,50,42,.10)}
+.btn-form svg{width:15px;height:15px;flex-shrink:0}
+.btn-copy.is-pressed,.btn-form.is-pressed{transform:scale(.96);transition-duration:.06s}
+[data-theme="dark"] .btn-copy{background:linear-gradient(180deg,hsl(163 55% 34%),hsl(163 55% 30%));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10)}
+[data-theme="dark"] .btn-form{background:color-mix(in srgb,var(--accent) 18%,var(--surface-3));
+  border:1px solid color-mix(in srgb,var(--accent) 26%,var(--border));
+  color:color-mix(in srgb,var(--accent-ink) 58%,var(--accent));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+/* anchor styled as sheet row */
+a.sheet-item{text-decoration:none;color:inherit}
 
 /* ===== auto-dark parity (A69) — mirror EVERY [data-theme="dark"] component (shell + added) ===== */
 @media(prefers-color-scheme:dark){
@@ -366,6 +403,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
   :root:not([data-theme="light"]) .progress{background:#0f1714}
   :root:not([data-theme="light"]) .demo-btn.secondary{background:var(--surface-3);border-color:var(--border)}
   :root:not([data-theme="light"]) .sheet{background:var(--surface-2);box-shadow:0 -8px 30px rgba(0,0,0,.5)}
+  :root:not([data-theme="light"]) .btn-copy{background:linear-gradient(180deg,hsl(163 55% 34%),hsl(163 55% 30%));box-shadow:inset 0 1px 0 rgba(255,255,255,.10)}
+  :root:not([data-theme="light"]) .btn-form{background:color-mix(in srgb,var(--accent) 18%,var(--surface-3));border:1px solid color-mix(in srgb,var(--accent) 26%,var(--border));color:color-mix(in srgb,var(--accent-ink) 58%,var(--accent));box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
   :root:not([data-theme="light"]) .fld{background:color-mix(in srgb,var(--card),#000 calc(var(--dWellDip)*1%));
     box-shadow:inset 0 2px calc(var(--dWellInset)*1px) rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,var(--dWellLight));
     border:1px solid color-mix(in srgb,var(--border),#000 20%)}
@@ -424,22 +463,48 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
         </div>
       </header>
       <div id="fill-body"></div>
-      <button class="copy-cta pressable" onclick="copyValues()">Копіювати 83 значення</button>
+      <div class="cta-row">
+        <button class="btn-copy pressable" onclick="copyValues()">Копіювати 83 значення</button>
+        <a class="btn-form pressable js-order-link" target="_blank" rel="noopener" aria-label="Відкрити форму замовлення в Excel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          <span>Excel</span>
+        </a>
+      </div>
     </section>
 
   </div>
 </div>
 
-<div class="sheet-scrim" id="scrim" onclick="closeSheet()"></div>
+<div class="sheet-scrim" id="scrim" onclick="closeSheets()"></div>
 <div class="sheet" id="sheet" role="dialog" aria-label="Меню">
   <div class="grip"></div>
   <div class="sheet-item pressable" onclick="cycleTheme()">
     <span class="si-ic" id="themeIc">◐</span>
     <span class="si-tx"><b>Тема</b><span id="themeLbl">Авто (за системою)</span></span>
   </div>
-  <div class="sheet-item pressable"><span class="si-ic">ⓘ</span><span class="si-tx"><b>Про додаток</b><span id="aboutVer">Версія — шелл</span></span></div>
-  <div class="sheet-item pressable"><span class="si-ic">↧</span><span class="si-tx"><b>Експорт CSV</b><span>Тиха страховка (§4)</span></span></div>
+  <a class="sheet-item pressable js-order-link" target="_blank" rel="noopener">
+    <span class="si-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+    <span class="si-tx"><b>Excel — форма замовлення</b><span>Відкрити для вставки</span></span>
+  </a>
+  <div class="sheet-item pressable" onclick="openAbout()"><span class="si-ic">ⓘ</span><span class="si-tx"><b>Про додаток</b><span id="aboutVer">Версія — шелл</span></span></div>
+  <div class="sheet-item pressable" onclick="exportCSV()"><span class="si-ic">↧</span><span class="si-tx"><b>Експорт CSV</b><span id="csvSub">Тиха страховка</span></span></div>
   <div class="sheet-item danger pressable" onclick="closeSheet()"><span class="si-ic">⨯</span><span class="si-tx"><b>Очистити сеанс</b><span>З підтвердженням</span></span></div>
+</div>
+
+<div class="sheet" id="sh-about" role="dialog" aria-label="Про додаток">
+  <div class="grip"></div>
+  <div class="about-hd">
+    <div class="about-logo">Ф</div>
+    <div><div class="about-name" id="ab-name">Фармастор</div><div class="about-tag" id="ab-tag">інструмент залишків</div></div>
+  </div>
+  <div class="about-row"><span>Версія</span><span id="ab-ver">—</span></div>
+  <div class="about-row"><span>Збірка</span><span id="ab-date">—</span></div>
+  <div class="about-credit">Створив <b id="ab-author">Konst.Andre</b></div>
+  <a class="tgpill pressable js-tg-link" target="_blank" rel="noopener">
+    <span class="tg-dot"><svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px"><path d="M9.8 16.3l-.4 3.6c.5 0 .7-.2 1-.5l2.4-2.3 5 3.7c.9.5 1.6.2 1.8-.8l3.3-15.4c.3-1.3-.5-1.8-1.4-1.5L1.1 9.6c-1.3.5-1.3 1.2-.2 1.5l4.9 1.5L18.5 5c.5-.3 1-.2.6.2"/></svg></span>
+    <span id="ab-tg">t.me/Konst_Andre</span>
+    <span class="tg-arr">↗</span>
+  </a>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -624,14 +689,23 @@ const LAYOUT={
 const OTC_BRANDS=['strep','nuro','gavis'];
 const IW_BRANDS=['durex','contex','evi'];
 
-const APP_BUILD = 'v2.3.0-arc.b9';
+const APP_BUILD = { ver:'v2.4.0', build:'node8.b10', date:'16.07.2026' }; // wsd 10.6 — єдина константа версії
 const NETWORK = { name:'Фармастор', tagline:'інструмент залишків', tg:'t.me/Konst_Andre' };
+const ORDER_FORM_URL = 'https://rbcom-my.sharepoint.com/:x:/r/personal/yuliia_syniuhina_reckitt_com/_layouts/15/Doc.aspx?sourcedoc=%7B361AB6BF-2AE9-410C-A81F-2AA3502C4EAD%7D&file=%25u0424%25u0430%25u0440%25u043c%25u0430%25u0441%25u0442%25u043e%25u0440%20%25u0437%25u0430%25u043c%25u043e%25u0432%25u043b%25u0435%25u043d%25u043d%25u044f%20%25u0442%25u0442.xlsx&wdLOR=c06833412-A6C7-4B15-AE95-76BCF4AB9FD6&openShare=true&fromShare=true&action=default&mobileredirect=true';
 const MSL_BY_K={}; MSL.forEach(function(s){MSL_BY_K[s.k]=s;});
 const TOTAL = MSL.length; // 83
 
 document.getElementById('homeTitle').textContent = NETWORK.name;
 /* homeSub = «Мої аптеки» (HTML-літерал, Node 5) — tagline лишається лише в NETWORK для About */
-document.getElementById('aboutVer').textContent  = 'Збірка ' + APP_BUILD;
+document.getElementById('aboutVer').textContent = APP_BUILD.ver;
+/* Excel deep-link: єдиний ORDER_FORM_URL → всі .js-order-link (§4.2, <a target=_blank rel=noopener) */
+document.querySelectorAll('.js-order-link').forEach(function(a){a.href=ORDER_FORM_URL;});
+/* About: Telegram-лінк + текст-поля з констант (нуль хардкодів версії) */
+document.querySelectorAll('.js-tg-link').forEach(function(a){a.href='https://'+NETWORK.tg;});
+(function(){var s=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  s('ab-name',NETWORK.name); s('ab-tag',NETWORK.tagline);
+  s('ab-ver',APP_BUILD.ver+' · '+APP_BUILD.build); s('ab-date',APP_BUILD.date); s('ab-tg',NETWORK.tg);})();
+try{console.log('Фармастор build',APP_BUILD);}catch(e){}
 
 /* ---- state (flat v1; node 6 wraps into visits[]) ---- */
 const SK='farmstore_v2';
@@ -685,8 +759,20 @@ function show(id){
   document.getElementById('app').scrollTop=0;
   if(id==='s-home')renderHome();
 }
-function openSheet(){document.getElementById('scrim').classList.add('on');document.getElementById('sheet').classList.add('on');}
+function openSheet(){updateCsvLabel();document.getElementById('scrim').classList.add('on');document.getElementById('sheet').classList.add('on');}
 function closeSheet(){document.getElementById('scrim').classList.remove('on');document.getElementById('sheet').classList.remove('on');}
+function closeSheets(){document.getElementById('scrim').classList.remove('on');
+  document.getElementById('sheet').classList.remove('on');document.getElementById('sh-about').classList.remove('on');}
+/* A58 sheet→sheet handoff: закрити меню → 120ms (≈ fade) → відкрити About */
+function openAbout(){closeSheet();setTimeout(function(){
+  document.getElementById('scrim').classList.add('on');document.getElementById('sh-about').classList.add('on');},120);}
+/* §4.4 CSV context-split: детект активного екрана → динам-лейбл */
+function updateCsvLabel(){var sub=document.getElementById('csvSub');if(!sub)return;
+  var atFill=document.getElementById('s-fill').classList.contains('active');
+  if(atFill&&curPx){sub.textContent='Ця аптека';}
+  else{var n=Object.keys(ST.phs||{}).filter(function(px){var e=ST.phs[px];return e&&e.visits&&e.visits.length;}).length;
+    sub.textContent='Усі дані · '+n+' '+plApt(n);}}
+function plApt(n){var a=n%10,b=n%100;if(a===1&&b!==11)return'аптека';if(a>=2&&a<=4&&(b<12||b>14))return'аптеки';return'аптек';}
 let _tt;
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('on')},2200);}
 
@@ -1015,6 +1101,52 @@ function fallbackCopy(txt,msg){
   document.body.appendChild(ta);ta.focus();ta.select();
   try{document.execCommand('copy');toast(msg);}catch(e){toast('Не вдалось скопіювати');}
   document.body.removeChild(ta);
+}
+
+/* ---- CSV export §4.4 (тиха страховка; context-split) ---- */
+function csvCell(v){v=(v==null?'':''+v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function normOfVisit(vis,ph,s){ // норма per-tier-per-visit (§1/§3)
+  var tOtc=vis&&vis.tier?vis.tier.oTC:(ph?ph.oTC:''), tIw=vis&&vis.tier?vis.tier.iW:(ph?ph.iW:'');
+  return normFor(s.k, s.c==='OTC'?tOtc:tIw);
+}
+function csvSingle(px){
+  var ph=getPh(px), vis=todayVisit(px)||(function(){var e=ST.phs[px];return e&&e.visits&&e.visits.length?e.visits[e.visits.length-1]:null;})();
+  var data=vis?vis.vals:{};
+  var rows=['Kode;Назва;Категорія;Норма;Залишок'];
+  MSL.forEach(function(s){
+    var val=data[s.k]!==undefined?data[s.k]:'';
+    rows.push([s.k,csvCell(s.n),s.c,normOfVisit(vis,ph,s),val].join(';'));
+  });
+  return rows.join('\n');
+}
+function csvAll(){
+  var rows=['Proxima;Місто;Адреса;M;Kode;Назва;Категорія;Норма;Залишок;Дата'];
+  PH.forEach(function(ph,idx){
+    var e=ST.phs[ph.px]; if(!e||!e.visits||!e.visits.length)return;
+    var vis=e.visits[e.visits.length-1], data=vis.vals||{}, base=2+idx*83, addr=displayAddr(ph.addr);
+    MSL.forEach(function(s,i){ if(data[s.k]===undefined)return;
+      rows.push([ph.px,csvCell(ph.city),csvCell(addr),base+i,s.k,csvCell(s.n),s.c,normOfVisit(vis,ph,s),data[s.k],vis.date].join(';'));
+    });
+  });
+  return rows.join('\n');
+}
+function exportCSV(){
+  var atFill=document.getElementById('s-fill').classList.contains('active');
+  var csv,name;
+  if(atFill&&curPx){ csv=csvSingle(curPx); name='Фармастор_'+curPx+'_'+today()+'.csv'; }
+  else{ csv=csvAll(); name='Фармастор_усі_'+today()+'.csv';
+    if(csv.indexOf('\n')<0){closeSheets();toast('Немає даних для експорту');return;} }
+  closeSheets();
+  deliverCSV(name,csv);
+}
+function deliverCSV(name,csv){
+  var BOM='\ufeff', blob=new Blob([BOM+csv],{type:'text/csv;charset=utf-8'});
+  try{ if(navigator.canShare){var file=new File([blob],name,{type:'text/csv'});
+    if(navigator.canShare({files:[file]})){navigator.share({files:[file],title:name}).catch(function(){});return;} } }catch(e){}
+  try{ var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},1000); toast('Експортовано · '+name); }
+  catch(e){ toast('Не вдалось експортувати'); }
 }
 
 /* ---- A67 pointer-driven press ---- */
